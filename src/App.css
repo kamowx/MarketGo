@@ -1,0 +1,1036 @@
+.admin-signup-page {
+  min-height: 100vh;
+  width: 100%;
+  background: #ffffff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  font-family: "Satoshi", Arial, sans-serif;
+}
+
+.admin-signup-container {
+  width: 100%;
+  max-width: 480px;
+}
+
+.admin-signup-title {
+  font-family: "Integral CF", "Arial Black", sans-serif;
+  font-size: 38px;
+  font-weight: 900;
+  color: #000000;
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.admin-signup-description {
+  color: #777777;
+  font-size: 16px;
+  text-align: center;
+  margin-bottom: 35px;
+}
+
+.admin-signup-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.admin-signup-input {
+  width: 100%;
+  height: 58px;
+  border: none;
+  outline: none;
+  border-radius: 62px;
+  background: #f0f0f0;
+  padding: 0 25px;
+  font-size: 16px;
+  color: #000000;
+  font-family: "Satoshi", Arial, sans-serif;
+}
+
+.admin-signup-input::placeholder {
+  color: #777777;
+}
+
+.admin-signup-input:focus {
+  outline: 1px solid #000000;
+}
+
+.admin-signup-button {
+  width: 100%;
+  height: 58px;
+  border: none;
+  border-radius: 62px;
+  background: #000000;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: "Satoshi", Arial, sans-serif;
+  transition: 0.2s;
+}
+
+.admin-signup-button:hover {
+  background: #333333;
+}
+
+/* Телефон */
+@media (max-width: 576px) {
+  .admin-signup-page {
+    padding: 0px 0px;
+  }
+
+  .admin-signup-container {
+    max-width: 100%;
+  }
+
+  .admin-signup-title {
+    font-size: 30px;
+  }
+
+  .admin-signup-description {
+    font-size: 14px;
+    margin-bottom: 30px;
+  }
+
+  .admin-signup-input,
+  .admin-signup-button {
+    height: 55px;
+  }
+}
+
+/* Большой экран */
+@media (min-width: 1200px) {
+  .admin-signup-container {
+    max-width: 500px;
+  }
+
+  .admin-signup-title {
+    font-size: 44px;
+  }
+}
+.g-first {
+  color: #4285f4;
+}
+.o-first {
+  color: #ea4335;
+}
+.o-second {
+  color: #fbbc05;
+}
+.g-second {
+  color: #4285f4;
+}
+.l-letter {
+  color: #34a853;
+}
+.e-letter {
+  color: #ea4335;
+}
+
+.checkout-page {
+  width: 100%;
+  min-height: 100vh;
+  background: #ffffff;
+  font-family: "Satoshi", Arial, sans-serif;
+}
+
+.checkout-container {
+  display: flex;
+  width: 100%;
+  min-height: 100vh;
+}
+
+/* Левая часть */
+
+.checkout-left {
+  width: 50%;
+  min-height: 100vh;
+  background: #000000;
+  color: #ffffff;
+  padding: 50px 55px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.checkout-small-title {
+  color: #aaaaaa;
+  font-size: 12px;
+  letter-spacing: 3px;
+}
+
+.checkout-left h1 {
+  font-family: "Integral CF", "Arial Black", sans-serif;
+  font-size: clamp(38px, 4.5vw, 65px);
+  line-height: 1.2;
+  margin-bottom: 25px;
+}
+
+.checkout-description {
+  max-width: 400px;
+  color: #aaaaaa;
+  font-size: 17px;
+  line-height: 1.8;
+}
+
+.checkout-decoration {
+  color: #777777;
+  font-size: 12px;
+  letter-spacing: 3px;
+}
+
+/* Правая часть */
+
+.checkout-right {
+  width: 50%;
+  min-height: 100vh;
+  padding: 60px 50px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.checkout-form {
+  width: 100%;
+  max-width: 480px;
+}
+
+.checkout-form-label {
+  color: #999999;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  margin-bottom: 18px;
+}
+
+.checkout-form h2 {
+  font-family: "Integral CF", "Arial Black", sans-serif;
+  font-size: clamp(25px, 3vw, 36px);
+  margin-bottom: 12px;
+  color: #000000;
+}
+
+.checkout-form-description {
+  color: #777777;
+  font-size: 15px;
+  margin-bottom: 35px;
+}
+
+/* Поля */
+
+.checkout-name-row {
+  display: flex;
+  gap: 15px;
+}
+
+.checkout-field {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 22px;
+}
+
+.checkout-field label {
+  font-size: 14px;
+  font-weight: 700;
+  color: #000000;
+}
+
+.checkout-field input {
+  width: 100%;
+  height: 58px;
+  padding: 0 20px;
+  border: none;
+  outline: none;
+  border-radius: 50px;
+  background: #f0f0f0;
+  font-family: "Satoshi", Arial, sans-serif;
+  font-size: 14px;
+  color: #000000;
+}
+
+.checkout-field input::placeholder {
+  color: #999999;
+}
+
+.checkout-field input:focus {
+  outline: 1px solid #000000;
+}
+
+.checkout-field select {
+  width: 100%;
+  height: 58px;
+  padding: 0 20px;
+  border: none;
+  outline: none;
+  border-radius: 50px;
+  background: #f0f0f0;
+  font-family: "Satoshi", Arial, sans-serif;
+  font-size: 14px;
+  color: #000000;
+}
+
+.checkout-field input::placeholder {
+  color: #999999;
+}
+
+.checkout-field select:focus {
+  outline: 1px solid #000000;
+}
+
+.checkout-field select {
+  width: 100%;
+  height: 58px;
+  padding: 0 20px;
+  border: none;
+  outline: none;
+  border-radius: 50px;
+  background: #f0f0f0;
+  font-family: "Satoshi", Arial, sans-serif;
+  font-size: 14px;
+  color: #000000;
+}
+
+.checkout-field input::placeholder {
+  color: #999999;
+}
+
+.checkout-field select:focus {
+  outline: 1px solid #000000;
+}
+
+/* Кнопка */
+
+.checkout-button {
+  width: 100%;
+  height: 60px;
+  background: #000000;
+  color: #ffffff;
+  border: none;
+  border-radius: 50px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  transition: 0.2s;
+}
+
+.checkout-button:hover {
+  background: #333333;
+}
+
+.checkout-button span {
+  font-size: 21px;
+}
+
+/* Подвал */
+
+.checkout-footer {
+  color: #aaaaaa;
+  font-size: 11px;
+  letter-spacing: 2px;
+  margin-top: 50px;
+}
+
+/* Планшет */
+
+@media (max-width: 900px) {
+  .checkout-left {
+    padding: 35px;
+  }
+
+  .checkout-right {
+    padding: 35px;
+  }
+
+  .checkout-left h1 {
+    font-size: 38px;
+  }
+}
+
+/* Телефон */
+
+@media (max-width: 650px) {
+  .checkout-container {
+    flex-direction: column;
+  }
+
+  .checkout-left {
+    width: 100%;
+    min-height: 280px;
+    padding: 30px 25px;
+  }
+
+  .checkout-left h1 {
+    font-size: 34px;
+  }
+
+  .checkout-description {
+    font-size: 14px;
+  }
+
+  .checkout-right {
+    width: 100%;
+    min-height: 600px;
+    padding: 45px 22px;
+  }
+
+  .checkout-form h2 {
+    font-size: 28px;
+  }
+
+  .checkout-name-row {
+    gap: 10px;
+  }
+
+  .checkout-name-row input {
+    padding: 0 13px;
+    font-size: 13px;
+  }
+}
+
+.profile-page {
+  min-height: 100vh;
+  background: #ffffff;
+  color: #000000;
+  font-family: "Satoshi", Arial, sans-serif;
+}
+
+.profile-header {
+  height: 85px;
+  padding: 0 6%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #eeeeee;
+}
+
+.profile-logo {
+  font-family: "Integral CF", "Arial Black", sans-serif;
+  font-size: 27px;
+  font-weight: 900;
+  margin: 0;
+}
+
+.profile-logo span {
+  color: #ff3333;
+}
+
+.profile-header p {
+  color: #777777;
+  margin: 0;
+  font-size: 14px;
+}
+
+.profile-container {
+  max-width: 1400px;
+  margin: auto;
+  padding: 45px 6%;
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 55px;
+}
+
+/* Боковое меню */
+
+.profile-sidebar h2 {
+  font-family: "Integral CF", "Arial Black", sans-serif;
+  font-size: 22px;
+  margin-bottom: 30px;
+}
+
+.profile-user {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding-bottom: 25px;
+  border-bottom: 1px solid #eeeeee;
+}
+
+.profile-avatar,
+.profile-big-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f0eeed;
+  border-radius: 50%;
+  font-weight: 700;
+}
+
+.profile-avatar {
+  width: 50px;
+  height: 50px;
+  font-size: 20px;
+}
+
+.profile-user h4 {
+  font-size: 15px;
+  font-weight: 700;
+  margin: 0 0 5px;
+}
+
+.profile-user p {
+  color: #999999;
+  font-size: 12px;
+  margin: 0;
+}
+
+.profile-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 25px;
+}
+
+.profile-menu-item {
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 0 15px;
+  border-radius: 10px;
+  font-size: 14px;
+  color: #555555;
+  cursor: pointer;
+}
+
+.profile-menu-item span {
+  font-size: 19px;
+}
+
+.profile-menu-item.active {
+  background: #f0f0f0;
+  color: #000000;
+  font-weight: 700;
+}
+
+.profile-menu-item:hover {
+  background: #f5f5f5;
+}
+
+.profile-logout {
+  color: #ff3333;
+  margin-top: 15px;
+}
+
+/* Основная часть */
+
+.profile-content {
+  min-width: 0;
+}
+
+.profile-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 35px;
+}
+
+.profile-title p {
+  color: #999999;
+  font-size: 11px;
+  letter-spacing: 3px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.profile-title h1 {
+  font-family: "Integral CF", "Arial Black", sans-serif;
+  font-size: 36px;
+  margin: 0;
+}
+
+.profile-edit-icon {
+  width: 45px;
+  height: 45px;
+  background: #f0f0f0;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 22px;
+}
+
+/* Информация */
+
+.profile-information {
+  border: 1px solid #eeeeee;
+  padding: 30px;
+  border-radius: 15px;
+}
+
+.profile-information-header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding-bottom: 30px;
+  border-bottom: 1px solid #eeeeee;
+}
+
+.profile-big-avatar {
+  width: 75px;
+  height: 75px;
+  font-size: 30px;
+}
+
+.profile-information-header h2 {
+  font-family: "Integral CF", "Arial Black", sans-serif;
+  font-size: 20px;
+  margin-bottom: 8px;
+}
+
+.profile-information-header p {
+  color: #999999;
+  font-size: 14px;
+  margin: 0;
+}
+
+/* Данные пользователя */
+
+.profile-details {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+  padding: 30px 0;
+}
+
+.profile-detail span,
+.profile-address span {
+  color: #999999;
+  font-size: 13px;
+}
+
+.profile-detail h3,
+.profile-address h3 {
+  font-size: 16px;
+  font-weight: 700;
+  margin-top: 10px;
+  overflow-wrap: anywhere;
+}
+
+.profile-address {
+  padding-top: 25px;
+  border-top: 1px solid #eeeeee;
+}
+
+/* Кнопка */
+
+.profile-edit-button {
+  width: 100%;
+  height: 58px;
+  margin-top: 30px;
+  border-radius: 50px;
+  background: #000000;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.profile-edit-button:hover {
+  background: #333333;
+}
+
+.profile-edit-button span {
+  font-size: 20px;
+}
+
+.profile-bottom {
+  text-align: center;
+  margin-top: 50px;
+  color: #aaaaaa;
+  font-size: 11px;
+  letter-spacing: 2px;
+}
+
+/* Планшет */
+
+@media (max-width: 900px) {
+  .profile-container {
+    grid-template-columns: 220px 1fr;
+    gap: 25px;
+    padding: 35px 4%;
+  }
+
+  .profile-information {
+    padding: 20px;
+  }
+
+  .profile-title h1 {
+    font-size: 29px;
+  }
+}
+
+/* Телефон */
+
+@media (max-width: 650px) {
+  .profile-header {
+    height: 70px;
+    padding: 0 20px;
+  }
+
+  .profile-logo {
+    font-size: 22px;
+  }
+
+  .profile-header p {
+    font-size: 12px;
+  }
+
+  .profile-container {
+    display: flex;
+    flex-direction: column;
+    padding: 25px 18px;
+    gap: 30px;
+  }
+
+  .profile-sidebar h2 {
+    font-size: 20px;
+    margin-bottom: 20px;
+  }
+
+  .profile-menu {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .profile-menu-item {
+    padding: 10px;
+    font-size: 12px;
+    gap: 8px;
+  }
+
+  .profile-logout {
+    margin-top: 0;
+  }
+
+  .profile-title h1 {
+    font-size: 27px;
+  }
+
+  .profile-information {
+    padding: 18px;
+  }
+
+  .profile-information-header h2 {
+    font-size: 17px;
+  }
+
+  .profile-big-avatar {
+    width: 60px;
+    height: 60px;
+  }
+
+  .profile-details {
+    gap: 25px 12px;
+  }
+
+  .profile-detail h3 {
+    font-size: 14px;
+  }
+
+  .profile-bottom {
+    margin-top: 35px;
+  }
+}
+
+.stylestore-profile {
+  min-height: 100vh;
+  width: 100%;
+  background: #ffffff;
+  color: #000000;
+  font-family: "Satoshi", Arial, sans-serif;
+  padding-bottom: 30px;
+}
+
+/* Шапка */
+
+.stylestore-profile-header {
+  width: 100%;
+  height: 75px;
+  padding: 0 6%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #eeeeee;
+}
+
+.stylestore-profile-header h2 {
+  font-family: "Integral CF", "Arial Black", sans-serif;
+  font-size: 25px;
+  font-weight: 900;
+  margin: 0;
+}
+
+.stylestore-profile-header h2 span {
+  color: #ff3333;
+}
+
+.stylestore-profile-back {
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #000000;
+  background: #f0f0f0;
+  border-radius: 50%;
+  text-decoration: none;
+}
+
+/* Контент */
+
+.stylestore-profile-content {
+  width: 100%;
+  max-width: 650px;
+  margin: 0 auto;
+  padding: 35px 20px;
+}
+
+/* Пользователь */
+
+.stylestore-profile-user {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.stylestore-profile-avatar {
+  width: 90px;
+  height: 90px;
+  background: #f0eeed;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0 auto 18px;
+  font-size: 35px;
+}
+
+.stylestore-profile-user h1 {
+  font-family: "Integral CF", "Arial Black", sans-serif;
+  font-size: 29px;
+  font-weight: 900;
+  margin-bottom: 10px;
+}
+
+.stylestore-profile-user p {
+  font-size: 14px;
+  color: #888888;
+}
+
+/* Карточка данных */
+
+.stylestore-profile-card {
+  border: 1px solid #eeeeee;
+  border-radius: 15px;
+  padding: 10px 20px;
+  margin-bottom: 22px;
+}
+
+.stylestore-profile-row {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 17px 0;
+}
+
+.stylestore-profile-row:not(:last-child) {
+  border-bottom: 1px solid #eeeeee;
+}
+
+.stylestore-profile-icon {
+  width: 43px;
+  height: 43px;
+  min-width: 43px;
+  background: #f0f0f0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+
+.stylestore-profile-row span {
+  display: block;
+  font-size: 12px;
+  color: #999999;
+  margin-bottom: 5px;
+}
+
+.stylestore-profile-row strong {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+/* Разделы */
+
+.stylestore-profile-actions {
+  border: 1px solid #eeeeee;
+  border-radius: 15px;
+  padding: 0 18px;
+  margin-bottom: 25px;
+}
+
+.stylestore-profile-action {
+  min-height: 78px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  color: #000000;
+  text-decoration: none;
+  border-bottom: 1px solid #eeeeee;
+}
+
+.stylestore-profile-action:last-child {
+  border-bottom: none;
+}
+
+.stylestore-action-icon {
+  width: 43px;
+  height: 43px;
+  min-width: 43px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f0f0f0;
+  border-radius: 50%;
+  font-size: 17px;
+}
+
+.stylestore-profile-action div:nth-child(2) {
+  flex: 1;
+}
+
+.stylestore-profile-action strong {
+  display: block;
+  font-size: 14px;
+  margin-bottom: 5px;
+}
+
+.stylestore-profile-action span {
+  display: block;
+  font-size: 12px;
+  color: #999999;
+}
+
+.stylestore-profile-action > i {
+  color: #999999;
+  font-size: 13px;
+}
+
+.stylestore-profile-action:hover {
+  color: #555555;
+}
+
+/* Кнопки */
+
+.stylestore-profile-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.stylestore-profile-edit,
+.stylestore-profile-logout {
+  width: 100%;
+  height: 55px;
+  border-radius: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.stylestore-profile-edit {
+  background: #000000;
+  color: #ffffff;
+  border: none;
+}
+
+.stylestore-profile-edit:hover {
+  background: #333333;
+  color: #ffffff;
+}
+
+.stylestore-profile-logout {
+  background: #ffffff;
+  color: #ff3333;
+  border: 1px solid #eeeeee;
+}
+
+.stylestore-profile-logout:hover {
+  background: #fff5f5;
+}
+
+/* Подвал */
+
+.stylestore-profile-footer {
+  text-align: center;
+  color: #aaaaaa;
+  font-size: 11px;
+  letter-spacing: 2px;
+  margin-top: 35px;
+}
+
+/* ПК */
+
+@media (min-width: 1000px) {
+  .stylestore-profile-content {
+    padding-top: 50px;
+  }
+}
+
+/* Телефон */
+
+@media (max-width: 576px) {
+  .stylestore-profile-header {
+    height: 65px;
+    padding: 0 20px;
+  }
+
+  .stylestore-profile-header h2 {
+    font-size: 22px;
+  }
+
+  .stylestore-profile-content {
+    padding: 30px 16px;
+  }
+
+  .stylestore-profile-user h1 {
+    font-size: 25px;
+  }
+
+  .stylestore-profile-avatar {
+    width: 80px;
+    height: 80px;
+    font-size: 30px;
+  }
+
+  .stylestore-profile-card {
+    padding: 8px 15px;
+  }
+
+  .stylestore-profile-actions {
+    padding: 0 12px;
+  }
+
+  .stylestore-profile-action {
+    gap: 11px;
+  }
+}

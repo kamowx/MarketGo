@@ -1,0 +1,247 @@
+.admin-signup-page {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  background: #ffffff;
+  font-family: "Satoshi", Arial, sans-serif;
+}
+
+/* Левая половина */
+
+.admin-signup-left {
+  width: 50%;
+  min-height: 100vh;
+  background: #000000;
+  color: #ffffff;
+  padding: 45px 55px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.admin-signup-logo {
+  font-family: "Integral CF", "Arial Black", sans-serif;
+  font-size: 27px;
+  font-weight: 900;
+  letter-spacing: -1px;
+}
+
+.admin-signup-logo span {
+  color: #ff3333;
+}
+
+.admin-signup-left-content {
+  max-width: 550px;
+  margin: auto 0;
+}
+
+.admin-signup-small {
+  font-size: 13px;
+  letter-spacing: 3px;
+  color: #999999;
+  margin-bottom: 25px;
+}
+
+.admin-signup-left-content h1 {
+  font-family: "Integral CF", "Arial Black", sans-serif;
+  font-size: clamp(35px, 4vw, 58px);
+  line-height: 1.2;
+  font-weight: 900;
+  margin-bottom: 25px;
+}
+
+.admin-signup-left-text {
+  max-width: 420px;
+  font-size: 17px;
+  line-height: 1.8;
+  color: #aaaaaa;
+}
+
+.admin-signup-left-bottom {
+  font-size: 12px;
+  letter-spacing: 2px;
+  color: #777777;
+}
+
+/* Правая половина */
+
+.admin-signup-right {
+  width: 50%;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 50px;
+  background: #ffffff;
+}
+
+.admin-signup-form-container {
+  width: 100%;
+  max-width: 430px;
+}
+
+.admin-signup-form-small {
+  color: #999999;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  margin-bottom: 18px;
+}
+
+.admin-signup-form-container h2 {
+  font-family: "Integral CF", "Arial Black", sans-serif;
+  font-size: clamp(27px, 3vw, 38px);
+  color: #000000;
+  font-weight: 900;
+  margin-bottom: 15px;
+}
+
+.admin-signup-form-description {
+  color: #777777;
+  font-size: 16px;
+  margin-bottom: 40px;
+  line-height: 1.6;
+}
+
+/* Поля */
+
+.admin-signup-form {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+.admin-signup-field {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.admin-signup-field label {
+  color: #000000;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.admin-signup-field input {
+  width: 100%;
+  height: 60px;
+  padding: 0 22px;
+  border: none;
+  outline: none;
+  border-radius: 50px;
+  background: #f0f0f0;
+  color: #000000;
+  font-size: 15px;
+  font-family: "Satoshi", Arial, sans-serif;
+}
+
+.admin-signup-field input::placeholder {
+  color: #999999;
+}
+
+.admin-signup-field input:focus {
+  outline: 1px solid #000000;
+}
+
+/* Кнопка */
+
+.admin-signup-button {
+  width: 100%;
+  height: 60px;
+  margin-top: 10px;
+  border: none;
+  border-radius: 50px;
+  background: #000000;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  transition: 0.2s;
+}
+
+.admin-signup-button:hover {
+  background: #333333;
+}
+
+.admin-signup-button span {
+  font-size: 22px;
+}
+
+/* Нижняя надпись */
+
+.admin-signup-bottom-text {
+  margin-top: 65px;
+  text-align: center;
+  color: #aaaaaa;
+  font-size: 11px;
+  letter-spacing: 2px;
+}
+
+/* Планшет */
+
+@media (max-width: 900px) {
+  .admin-signup-left {
+    padding: 35px;
+  }
+
+  .admin-signup-right {
+    padding: 35px;
+  }
+
+  .admin-signup-left-content h1 {
+    font-size: 35px;
+  }
+}
+
+/* Телефон */
+
+@media (max-width: 650px) {
+  .admin-signup-page {
+    flex-direction: column;
+  }
+
+  .admin-signup-left {
+    width: 100%;
+    min-height: 300px;
+    padding: 30px 25px;
+  }
+
+  .admin-signup-logo {
+    font-size: 23px;
+  }
+
+  .admin-signup-left-content {
+    margin: 45px 0;
+  }
+
+  .admin-signup-left-content h1 {
+    font-size: 32px;
+  }
+
+  .admin-signup-left-text {
+    font-size: 14px;
+  }
+
+  .admin-signup-left-bottom {
+    font-size: 10px;
+  }
+
+  .admin-signup-right {
+    width: 100%;
+    min-height: 550px;
+    padding: 55px 25px;
+  }
+
+  .admin-signup-form-container h2 {
+    font-size: 29px;
+  }
+
+  .admin-signup-bottom-text {
+    margin-top: 45px;
+  }
+}
