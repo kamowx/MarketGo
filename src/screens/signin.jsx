@@ -1,4 +1,90 @@
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { signInWithPopup } from "firebase/auth";
+import { auth, googleProvider } from "../firebase/firebase-config";
+import axios from "axios";
+
+const USER_URL = "https://6aedd445a677fe0fc14f8ae2.mockapi.io/users";
+
 function Signin() {
+  const navigate = useNavigate();
+  const [users, setUsers] = useState([]);
+  const allUser = async () => {
+    try {
+      const response = await axios.get(USER_URL);
+      setUsers(response.data);
+    } catch (error) {
+      console.error("Ошибка загрузки пользователей:", error);
+    }
+  };
+
+  // Ищем пользователя в MockAPI по UID Google
+  const getUserByUid = async (uid) => {
+    const response = await axios.get(USER_URL);
+
+    return response.data.find((item) => item.uid === uid);
+  };
+
+  // Создаём пользователя в MockAPI
+  const createUser = async (userData) => {
+    const response = await axios.post(USER_URL, userData);
+
+    return response.data;
+  };
+
+  // Вход через Google
+  const loginWithGoogle = async () => {
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      const googleUser = result.user;
+
+      // Сохраняем UID Google
+      localStorage.setItem("uid", googleUser.uid);
+
+      // Проверяем, есть ли пользователь в MockAPI
+      let existingUser = await getUserByUid(googleUser.uid);
+
+      if (!existingUser) {
+        const nameParts = (googleUser.displayName || "").split(" ");
+
+        existingUser = await createUser({
+          uid: googleUser.uid,
+          firstname: nameParts[0] || "",
+          lastname: nameParts.slice(1).join(" "),
+          email: googleUser.email || "",
+          avatar: googleUser.photoURL || "",
+          numberphone: googleUser.phoneNumber || "",
+          role: "user",
+          balance: "0",
+          adres: "Адреса нет",
+          createdAt: new Date().toISOString(),
+        });
+      }
+
+      // Сохраняем ID именно записи MockAPI
+      localStorage.setItem("uid", JSON.stringify(existingUser.uid));
+
+      alert("Вы успешно вошли через Google");
+
+      // Открываем профиль
+      navigate("/profile");
+    } catch (error) {
+      console.error("Ошибка входа через Google:", error);
+      alert("Не удалось войти через Google");
+    }
+  };
+
+  useEffect(() => {
+    allUser();
+  }, []);
+
+  useEffect(() => {
+    const uid = localStorage.getItem("uid");
+
+    if (uid) {
+      navigate("/home");
+    }
+  }, [navigate]);
   return (
     <div className="admin-signup-page">
       {/* 1 часть */}
@@ -35,7 +121,7 @@ function Signin() {
           <p className="admin-signup-form-description">Через Google</p>
 
           <div className="admin-signup-form">
-            <button className="admin-signup-button">
+            <button className="admin-signup-button" onClick={loginWithGoogle}>
               <div className="google-logo" style={{ fontSize: "20px" }}>
                 <span className="g-first">G</span>
                 <span className="o-first">o</span>

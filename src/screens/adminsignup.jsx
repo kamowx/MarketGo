@@ -44,9 +44,26 @@ function Adminsignup() {
             </div>
 
             <div className="admin-signup-field">
+              <label>Номер телефона</label>
+
+              <input type="email" placeholder="Введите ваш email" />
+            </div>
+
+            <div className="admin-signup-field">
               <label>Пароль</label>
 
               <input type="password" placeholder="Введите пароль" />
+            </div>
+
+            <div className="admin-signup-field">
+              <label>Подвердите пароль</label>
+
+              <input
+                type="password"
+                placeholder="Введите пароль"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
             </div>
 
             <button className="admin-signup-button">
