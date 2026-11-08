@@ -4,90 +4,79 @@ import Bottomnav from "../components/bottomnav";
 import axios from "axios";
 
 const USERS_URL = "https://6aedd445a677fe0fc14f8ae2.mockapi.io/users";
+const PRODUCTS_URL = "https://6af02a41b9925b27ce173abb.mockapi.io/products";
+const FAVORITES_URL =
+  "https://6ad252f566cd28aed82de514.mockapi.io/favoritesmerketgo";
 
 function Favorites() {
   const navigate = useNavigate();
 
   const [user, setUser] = useState(null);
+  const [favorites, setFavorites] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const favorites = [
-    {
-      id: 1,
-      name: "Классическая куртка",
-      price: "3 500 сом",
-      category: "Одежда",
-      image: "https://images.unsplash.com/photo-1551028719-00167b16eac5?w=600",
-    },
-    {
-      id: 2,
-      name: "Белые кроссовки",
-      price: "2 800 сом",
-      category: "Обувь",
-      image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600",
-    },
-    {
-      id: 3,
-      name: "Чёрная сумка",
-      price: "1 900 сом",
-      category: "Аксессуары",
-      image: "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600",
-    },
-    {
-      id: 4,
-      name: "Мужская футболка",
-      price: "1 200 сом",
-      category: "Одежда",
-      image:
-        "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=600",
-    },
-  ];
-
-  // Ищем пользователя по Firebase uid
+  // Получаем пользователя и его избранные товары
   useEffect(() => {
     let cancelled = false;
 
-    const getUser = async () => {
+    const getFavorites = async () => {
       const uid = String(localStorage.getItem("uid") || "").replaceAll('"', "");
 
       if (!uid) {
-        navigate("/signin", { replace: true });
+        navigate("/", { replace: true });
         setLoading(false);
         return;
       }
 
       try {
-        const response = await axios.get(USERS_URL);
+        const [usersResponse, favoritesResponse, productsResponse] =
+          await Promise.all([
+            axios.get(USERS_URL),
+            axios.get(FAVORITES_URL),
+            axios.get(PRODUCTS_URL),
+          ]);
 
-        const currentUser = response.data.find(
+        const currentUser = usersResponse.data.find(
           (item) => String(item.uid) === uid,
         );
 
         if (!currentUser) {
-          if (!cancelled) {
-            alert("Пользователь не найден");
-            localStorage.removeItem("uid");
-            navigate("/signin", { replace: true });
-          }
+          navigate("/", { replace: true });
           return;
         }
-
-        if (cancelled) return;
-
-        console.log("CURRENT USER:", currentUser);
 
         if (currentUser.role === "admin") {
           navigate("/admin", { replace: true });
           return;
         }
 
-        setUser(currentUser);
-      } catch (error) {
-        console.error("Ошибка получения пользователя:", error);
+        const userFavorites = favoritesResponse.data.filter(
+          (item) => String(item.fuid) === uid,
+        );
 
-        if (error.response?.status === 429) {
-          alert("Слишком много запросов. Подожди немного и попробуй снова.");
+        // Находим товары по productId
+        const favoriteProducts = userFavorites
+          .map((favorite) => {
+            const product = productsResponse.data.find(
+              (item) => String(item.id) === String(favorite.productId),
+            );
+
+            if (!product) return null;
+
+            return {
+              ...favorite,
+              product,
+            };
+          })
+          .filter(Boolean);
+
+        if (!cancelled) {
+          setUser(currentUser);
+          setFavorites(favoriteProducts);
         }
+      } catch (error) {
+        console.error("GET FAVORITES ERROR:", error);
+        alert("Не удалось загрузить избранное");
       } finally {
         if (!cancelled) {
           setLoading(false);
@@ -95,12 +84,26 @@ function Favorites() {
       }
     };
 
-    getUser();
+    getFavorites();
 
     return () => {
       cancelled = true;
     };
   }, [navigate]);
+
+  // Удалить из избранного
+  const removeFavorite = async (favorite) => {
+    try {
+      await axios.delete(`${FAVORITES_URL}/${favorite.id}`);
+
+      setFavorites((prev) =>
+        prev.filter((item) => String(item.id) !== String(favorite.id)),
+      );
+    } catch (error) {
+      console.error("DELETE FAVORITE ERROR:", error);
+      alert("Не удалось удалить товар из избранного");
+    }
+  };
 
   return (
     <div className="market-page">
@@ -140,27 +143,46 @@ function Favorites() {
           <span>{favorites.length} товаров</span>
         </div>
 
-        <div className="market-products">
-          {favorites.map((item) => (
-            <div className="market-product-card" key={item.id}>
-              <div className="market-product-image">
-                <img src={item.image} alt={item.name} />
+        {loading ? (
+          <p>Загрузка избранного...</p>
+        ) : (
+          <div className="market-products">
+            {favorites.map((item) => (
+              <div className="market-product-card" key={item.id}>
+                <div className="market-product-image">
+                  <img src={item.product.avatar} alt={item.product.name} />
 
-                <button className="market-favorite-button favorite-active">
-                  <i className="fa-solid fa-heart"></i>
-                </button>
+                  <button
+                    className="market-favorite-button favorite-active"
+                    onClick={() => removeFavorite(item)}
+                  >
+                    <i className="fa-solid fa-heart"></i>
+                  </button>
+                </div>
+
+                <div className="market-product-info">
+                  <p>{item.product.category}</p>
+                  <h3>{item.product.name}</h3>
+
+                  <strong>
+                    {Number(item.product.price).toLocaleString("ru-RU")} сом
+                  </strong>
+                  <br />
+                  <br />
+                  <button
+                    className="buttonfa"
+                    onClick={() => navigate(`/product/${item.id}`)}
+                  >
+                    Посмотреть товар
+                    <i className="fa-solid fa-arrow-right"></i>
+                  </button>
+                </div>
               </div>
+            ))}
+          </div>
+        )}
 
-              <div className="market-product-info">
-                <p>{item.category}</p>
-                <h3>{item.name}</h3>
-                <strong>{item.price}</strong>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {favorites.length === 0 && (
+        {!loading && favorites.length === 0 && (
           <div className="market-empty">
             <i className="fa-regular fa-heart"></i>
             <h3>Избранное пока пустое</h3>

@@ -233,14 +233,14 @@ function Profile() {
             <i className="fa-solid fa-chevron-right"></i>
           </Link>
 
-          <Link to="/deliveryinfo" className="stylestore-profile-action">
+          <Link to="/editprofile" className="stylestore-profile-action">
             <div className="stylestore-action-icon">
               <i className="fa-solid fa-location-dot"></i>
             </div>
 
             <div>
               <strong>Адрес доставки</strong>
-              <span>Информация для доставки</span>
+              <span> {loading ? "Загрузка..." : user?.adres || ""}</span>
             </div>
 
             <i className="fa-solid fa-chevron-right"></i>

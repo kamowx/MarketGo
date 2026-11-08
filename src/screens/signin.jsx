@@ -55,6 +55,7 @@ function Signin() {
           avatar: googleUser.photoURL || "",
           numberphone: googleUser.phoneNumber || "",
           role: "user",
+          status: "Подтвержденный",
           balance: "0",
           adres: "Адреса нет",
           createdAt: new Date().toISOString(),

@@ -1,59 +1,24 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import Bottomnav from "../components/bottomnav";
 import axios from "axios";
 
 const USERS_URL = "https://6aedd445a677fe0fc14f8ae2.mockapi.io/users";
+const ORDERS_URL = "https://6af02a41b9925b27ce173abb.mockapi.io/orders";
 
 function Myorders() {
   const navigate = useNavigate();
+
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("Все");
-
-  const orders = [
-    {
-      id: 1,
-      name: "Классическая куртка",
-      price: "3 500 сом",
-      date: "05.11.2026",
-      status: "Едет",
-      image: "https://images.unsplash.com/photo-1551028719-00167b16eac5?w=600",
-    },
-    {
-      id: 2,
-      name: "Белые кроссовки",
-      price: "2 800 сом",
-      date: "03.11.2026",
-      status: "Получено",
-      image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600",
-    },
-    {
-      id: 3,
-      name: "Чёрная сумка",
-      price: "1 900 сом",
-      date: "06.11.2026",
-      status: "Заказан",
-      image: "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600",
-    },
-  ];
-
-  const filteredOrders = orders.filter((item) => {
-    const matchesSearch = item.name
-      .toLowerCase()
-      .includes(search.toLowerCase());
-    const matchesStatus = status === "Все" || item.status === status;
-    return matchesSearch && matchesStatus;
-  });
-
-  /////////////////////////////
-  ////////////////////////////
   const [user, setUser] = useState(null);
+  const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  // Ищем пользователя по Firebase uid
+
   useEffect(() => {
     let cancelled = false;
 
-    const getUser = async () => {
+    const getOrders = async () => {
       const uid = String(localStorage.getItem("uid") || "").replaceAll('"', "");
 
       if (!uid) {
@@ -63,9 +28,9 @@ function Myorders() {
       }
 
       try {
-        const response = await axios.get(USERS_URL);
+        const usersResponse = await axios.get(USERS_URL);
 
-        const currentUser = response.data.find(
+        const currentUser = usersResponse.data.find(
           (item) => String(item.uid) === uid,
         );
 
@@ -78,22 +43,31 @@ function Myorders() {
           return;
         }
 
-        if (cancelled) return;
-
-        console.log("CURRENT USER:", currentUser);
-
         if (currentUser.role === "admin") {
           navigate("/admin", { replace: true });
           return;
         }
 
-        setUser(currentUser);
-      } catch (error) {
-        console.error("Ошибка получения пользователя:", error);
+        if (cancelled) return;
 
-        if (error.response?.status === 429) {
-          alert("Слишком много запросов. Подожди немного и попробуй снова.");
+        setUser(currentUser);
+
+        const ordersResponse = await axios.get(ORDERS_URL);
+
+        const userOrders = ordersResponse.data.filter(
+          (item) => String(item.buyerId) === String(currentUser.id),
+        );
+
+        userOrders.sort(
+          (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
+        );
+
+        if (!cancelled) {
+          setOrders(userOrders);
         }
+      } catch (error) {
+        console.error("Ошибка получения заказов:", error);
+        alert("Не удалось загрузить заказы");
       } finally {
         if (!cancelled) {
           setLoading(false);
@@ -101,15 +75,52 @@ function Myorders() {
       }
     };
 
-    getUser();
+    getOrders();
 
     return () => {
       cancelled = true;
     };
   }, [navigate]);
 
-  /////////////////////////////
-  ////////////////////////////
+  const getStatusName = (orderStatus) => {
+    if (
+      orderStatus === "Ожидание" ||
+      orderStatus === "Новый" ||
+      orderStatus === "Ожидание курьера"
+    ) {
+      return "Заказан";
+    }
+
+    if (
+      orderStatus === "Подтверждено" ||
+      orderStatus === "Подтвержденный" ||
+      orderStatus === "Подтверждённый" ||
+      orderStatus === "Курьер принял заказ" ||
+      orderStatus === "Едет" ||
+      orderStatus === "В пути"
+    ) {
+      return "Едет";
+    }
+
+    if (orderStatus === "Получено" || orderStatus === "Завершен") {
+      return "Получено";
+    }
+
+    return orderStatus;
+  };
+
+  // Фильтрация заказов
+  const filteredOrders = orders.filter((item) => {
+    const matchesSearch = (item.name || "")
+      .toLowerCase()
+      .includes(search.toLowerCase());
+
+    const matchesStatus =
+      status === "Все" || getStatusName(item.orderstatus) === status;
+
+    return matchesSearch && matchesStatus;
+  });
+
   return (
     <div className="market-page">
       <main className="market-container orders-container">
@@ -145,32 +156,65 @@ function Myorders() {
             <p>ИСТОРИЯ ПОКУПОК</p>
             <h2>Ваши товары</h2>
           </div>
+
           <span>{filteredOrders.length} заказа</span>
         </div>
 
         <div className="market-order-list">
-          {filteredOrders.map((item) => (
-            <div
-              className="market-order-card"
-              key={item.id}
-              onClick={() => navigate(`/orderstatus/${item.id}`)}
-            >
-              <img src={item.image} alt={item.name} />
-              <div className="market-order-info">
-                <p>Заказ №{item.id}</p>
-                <h3>{item.name}</h3>
-                <span>Дата: {item.date}</span>
-                <strong>{item.price}</strong>
-              </div>
-              <div
-                className={`market-order-status status-${item.status === "Едет" ? "moving" : item.status === "Получено" ? "done" : "new"}`}
-              >
-                {item.status}
-              </div>
+          {loading ? (
+            <div className="market-empty-orders">
+              <i className="fa-solid fa-spinner fa-spin"></i>
+              <p>Загрузка заказов...</p>
             </div>
-          ))}
+          ) : filteredOrders.length === 0 ? (
+            <div className="market-empty-orders">
+              <i className="fa-solid fa-bag-shopping"></i>
+              <h3>Заказов пока нет</h3>
+              <p>Здесь будут отображаться ваши покупки</p>
+            </div>
+          ) : (
+            filteredOrders.map((item) => (
+              <div
+                className="market-order-card"
+                key={item.id}
+                onClick={() => navigate(`/orderstatus/${item.id}`)}
+              >
+                <img src={item.avatar} alt={item.name} />
+
+                <div className="market-order-info">
+                  <p>Заказ №{item.id}</p>
+
+                  <h3>{item.name}</h3>
+
+                  <span>
+                    Дата:{" "}
+                    {item.createdAt
+                      ? new Date(item.createdAt).toLocaleDateString("ru-RU")
+                      : "Не указана"}
+                  </span>
+
+                  <strong>
+                    {Number(item.price || 0).toLocaleString("ru-RU")} сом
+                  </strong>
+                </div>
+
+                <div
+                  className={`market-order-status status-${
+                    getStatusName(item.orderstatus) === "Едет"
+                      ? "moving"
+                      : getStatusName(item.orderstatus) === "Получено"
+                        ? "done"
+                        : "new"
+                  }`}
+                >
+                  {getStatusName(item.orderstatus)}
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </main>
+
       <Bottomnav />
     </div>
   );

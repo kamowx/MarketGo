@@ -21,7 +21,6 @@ function Editprofile() {
 
   const [loading, setLoading] = useState(true);
 
-  // Получаем пользователя
   const getUser = async () => {
     try {
       let uid = localStorage.getItem("uid");
@@ -29,11 +28,6 @@ function Editprofile() {
       if (!uid) {
         alert("Сначала войдите в аккаунт");
         navigate("/signin");
-        return;
-      }
-
-      if (currentUser.role === "admin") {
-        navigate("/admin", { replace: true });
         return;
       }
 
@@ -51,6 +45,12 @@ function Editprofile() {
       if (!currentUser) {
         alert("Пользователь не найден");
         navigate("/signin");
+        return;
+      }
+
+      // Проверяем администратора
+      if (currentUser.role === "admin") {
+        navigate("/admin", { replace: true });
         return;
       }
 

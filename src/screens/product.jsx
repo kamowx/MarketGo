@@ -1,115 +1,227 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import axios from "axios";
+
+const USERS_URL = "https://6aedd445a677fe0fc14f8ae2.mockapi.io/users";
+const PRODUCTS_URL = "https://6af02a41b9925b27ce173abb.mockapi.io/products";
+const BUSINESS_URL = "https://6aedd445a677fe0fc14f8ae2.mockapi.io/buisness";
+const ORDERS_URL = "https://6af02a41b9925b27ce173abb.mockapi.io/orders";
 
 function Product() {
   const navigate = useNavigate();
   const { id } = useParams();
 
-  const products = [
-    {
-      id: "1",
-      name: "Классическая куртка",
-      price: 3500,
-      rating: "4.9",
-      reviews: 86,
-      category: "Мужская одежда",
-      images: [
-        "https://images.unsplash.com/photo-1551028719-00167b16eac5?w=900",
-        "https://images.unsplash.com/photo-1544923246-77307dd654cb?w=900",
-        "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=900",
-      ],
-      colors: [
-        { name: "Чёрный", value: "#111111" },
-        { name: "Белый", value: "#eeeeee" },
-        { name: "Коричневый", value: "#795548" },
-      ],
-      sizes: ["S", "M", "L", "XL", "XXL"],
-      store: "Fashion Store",
-    },
-    {
-      id: "2",
-      name: "Белые кроссовки",
-      price: 2800,
-      rating: "4.8",
-      reviews: 64,
-      category: "Обувь",
-      images: [
-        "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=900",
-        "https://images.unsplash.com/photo-1495555961986-6d4c1ecb7be3?w=900",
-        "https://images.unsplash.com/photo-1549298916-b41d501d3772?w=900",
-      ],
-      colors: [
-        { name: "Красный", value: "#c62828" },
-        { name: "Белый", value: "#eeeeee" },
-        { name: "Чёрный", value: "#111111" },
-      ],
-      sizes: ["38", "39", "40", "41", "42", "43"],
-      store: "Sneaker House",
-    },
-    {
-      id: "3",
-      name: "Чёрная сумка",
-      price: 1900,
-      rating: "4.7",
-      reviews: 42,
-      category: "Аксессуары",
-      images: [
-        "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=900",
-        "https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=900",
-        "https://images.unsplash.com/photo-1590874103328-eac38a683ce7?w=900",
-      ],
-      colors: [
-        { name: "Чёрный", value: "#111111" },
-        { name: "Коричневый", value: "#795548" },
-      ],
-      sizes: ["Один размер"],
-      store: "Style Accessories",
-    },
-    {
-      id: "4",
-      name: "Мужская футболка",
-      price: 1200,
-      rating: "4.9",
-      reviews: 51,
-      category: "Одежда",
-      images: [
-        "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=900",
-        "https://images.unsplash.com/photo-1503341504253-dff4815485f1?w=900",
-        "https://images.unsplash.com/photo-1583743814966-8936f37f4678?w=900",
-      ],
-      colors: [
-        { name: "Белый", value: "#eeeeee" },
-        { name: "Чёрный", value: "#111111" },
-        { name: "Серый", value: "#888888" },
-      ],
-      sizes: ["S", "M", "L", "XL"],
-      store: "Fashion Store",
-    },
-  ];
+  const [product, setProduct] = useState(null);
+  const [user, setUser] = useState(null);
+  const [business, setBusiness] = useState(null);
 
-  const product = products.find((item) => item.id === id) || products[0];
-
-  const [selectedColor, setSelectedColor] = useState(product.colors[0]);
-  const [selectedSize, setSelectedSize] = useState(product.sizes[0]);
+  const [selectedColor, setSelectedColor] = useState("");
+  const [selectedSize, setSelectedSize] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
   const [showModal, setShowModal] = useState(false);
 
-  const balance = 25000;
-  const total = product.price * quantity;
+  const [loading, setLoading] = useState(true);
+  const [paying, setPaying] = useState(false);
 
-  const formatPrice = (price) => price.toLocaleString("ru-RU");
+  // Пол товар
+  const getProduct = async () => {
+    try {
+      const uid = localStorage.getItem("uid")?.replaceAll('"', "");
 
-  const payOrder = () => {
-    if (total > balance) {
-      alert("Недостаточно средств на вашем балансе");
+      if (!uid) {
+        navigate("/");
+        return;
+      }
+
+      // Получае выб тов
+      const productResponse = await axios.get(`${PRODUCTS_URL}/${id}`);
+
+      setProduct(productResponse.data);
+
+      const usersResponse = await axios.get(USERS_URL);
+
+      const currentUser = usersResponse.data.find(
+        (item) => String(item.uid).replaceAll('"', "") === String(uid),
+      );
+
+      if (!currentUser) {
+        alert("Пользователь не найден");
+        navigate("/");
+        return;
+      }
+
+      setUser(currentUser);
+
+      // Получаем магазин продавца
+      const businessResponse = await axios.get(BUSINESS_URL);
+
+      const currentBusiness = businessResponse.data.find(
+        (item) => String(item.userId) === String(productResponse.data.userId),
+      );
+
+      setBusiness(currentBusiness || null);
+    } catch (error) {
+      console.log("Ошибка получения данных:", error);
+      alert("Не удалось загрузить товар");
+      navigate("/home");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    getProduct();
+  }, [id]);
+
+  // Фотографии товара
+  const images = product
+    ? product.avatar
+      ? [product.avatar]
+      : product.images || []
+    : [];
+
+  // Цвета товара
+  const colors = product
+    ? Array.isArray(product.color)
+      ? product.color
+      : product.color
+        ? [product.color]
+        : []
+    : [];
+
+  // Размеры товара
+  const sizes = product
+    ? Array.isArray(product.size)
+      ? product.size
+      : product.size
+        ? [product.size]
+        : []
+    : [];
+
+  useEffect(() => {
+    if (product) {
+      setSelectedColor(colors[0] || "");
+      setSelectedSize(sizes[0] || "");
+      setSelectedImage(0);
+      setQuantity(1);
+    }
+  }, [product]);
+
+  // Цвета
+  const getColorValue = (color) => {
+    const colorNames = {
+      Чёрный: "#111111",
+      Черный: "#111111",
+      Белый: "#eeeeee",
+      Коричневый: "#795548",
+      Красный: "#c62828",
+      Серый: "#888888",
+      Синий: "#1565c0",
+      Зелёный: "#2e7d32",
+      Зеленый: "#2e7d32",
+      Жёлтый: "#fdd835",
+      Желтый: "#fdd835",
+      Розовый: "#ec407a",
+    };
+
+    return colorNames[color] || color;
+  };
+
+  // Баланс
+  const balance = Number(user?.balance || 0);
+
+  // Общая сумма
+  const total = Number(product?.price || 0) * quantity;
+
+  const formatPrice = (price) => Number(price).toLocaleString("ru-RU");
+
+  // Оформление и оплата заказа
+  const payOrder = async () => {
+    if (paying) return;
+
+    if (!user) {
+      alert("Пользователь не найден");
       return;
     }
 
-    alert("Заказ успешно оплачен!");
-    setShowModal(false);
-    navigate("/orderstatus");
+    if (balance < total) {
+      alert("Суммы не хватает на балансе");
+      return;
+    }
+
+    if (!business) {
+      alert("Не удалось найти магазин продавца");
+      return;
+    }
+
+    try {
+      setPaying(true);
+
+      const newBalance = balance - total;
+
+      // Сохраняем заказ в MockAPI
+      const orderResponse = await axios.post(ORDERS_URL, {
+        createdAt: new Date().toISOString(),
+
+        buyerId: user.id,
+        productId: product.id,
+
+        avatar: product.avatar,
+        name: product.name,
+        price: total,
+
+        size: selectedSize,
+        color: selectedColor,
+        quantity: quantity,
+
+        orderstatus: "Ожидание",
+
+        firstname: user.firstname,
+        lastname: user.lastname,
+        numberphone: user.numberphone,
+
+        adrescompany: business.adrescompany,
+        adres: user.adres,
+      });
+
+      // Обнов баланс
+      try {
+        const balanceResponse = await axios.put(`${USERS_URL}/${user.id}`, {
+          ...user,
+          balance: newBalance,
+        });
+
+        setUser(balanceResponse.data);
+      } catch (balanceError) {
+        await axios.delete(`${ORDERS_URL}/${orderResponse.data.id}`);
+        throw balanceError;
+      }
+
+      alert("Заказ успешно оплачен!");
+
+      setShowModal(false);
+      navigate("/orderstatus");
+    } catch (error) {
+      console.log("Ошибка оформления заказа:", error);
+      alert("Не удалось оформить заказ. Попробуйте ещё раз.");
+    } finally {
+      setPaying(false);
+    }
   };
+
+  if (loading) {
+    return <div className="product-page">Загрузка товара...</div>;
+  }
+
+  if (!product) {
+    return (
+      <div className="product-page">
+        <h2>Товар не найден</h2>
+        <button onClick={() => navigate("/home")}>На главную</button>
+      </div>
+    );
+  }
 
   return (
     <div className="product-page">
@@ -123,11 +235,11 @@ function Product() {
           {/* ФОТО ТОВАРА */}
           <div className="product-gallery">
             <div className="product-main-image">
-              <img src={product.images[selectedImage]} alt={product.name} />
+              <img src={images[selectedImage]} alt={product.name} />
             </div>
 
             <div className="product-thumbnails">
-              {product.images.map((image, index) => (
+              {images.map((image, index) => (
                 <button
                   key={index}
                   className={selectedImage === index ? "selected" : ""}
@@ -147,8 +259,8 @@ function Product() {
 
             <div className="product-rating">
               <i className="fa-solid fa-star"></i>
-              <strong>{product.rating}</strong>
-              <span>({product.reviews} отзывов)</span>
+              <strong>{product.rating || "—"}</strong>
+              <span>({product.reviews || 0} отзывов)</span>
             </div>
 
             <h2 className="product-price">{formatPrice(product.price)} сом</h2>
@@ -159,24 +271,22 @@ function Product() {
             <div className="product-option">
               <div className="product-option-heading">
                 <strong>Цвет</strong>
-                <span>{selectedColor.name}</span>
+                <span>{selectedColor}</span>
               </div>
 
               <div className="product-colors">
-                {product.colors.map((color) => (
+                {colors.map((color, index) => (
                   <button
-                    key={color.name}
-                    className={
-                      selectedColor.name === color.name ? "selected" : ""
-                    }
-                    style={{ background: color.value }}
+                    key={index}
+                    className={selectedColor === color ? "selected" : ""}
+                    style={{ background: getColorValue(color) }}
                     onClick={() => setSelectedColor(color)}
-                    title={color.name}
+                    title={color}
                   >
-                    {selectedColor.name === color.name && (
+                    {selectedColor === color && (
                       <i
                         className={`fa-solid fa-check ${
-                          color.name === "Белый" ? "dark-check" : ""
+                          color === "Белый" ? "dark-check" : ""
                         }`}
                       ></i>
                     )}
@@ -193,9 +303,9 @@ function Product() {
               </div>
 
               <div className="product-sizes">
-                {product.sizes.map((size) => (
+                {sizes.map((size, index) => (
                   <button
-                    key={size}
+                    key={index}
                     className={selectedSize === size ? "selected" : ""}
                     onClick={() => setSelectedSize(size)}
                   >
@@ -253,7 +363,7 @@ function Product() {
 
             <div className="product-store">
               <i className="fa-solid fa-store"></i>
-              Магазин: <strong>{product.store}</strong>
+              Магазин: <strong>{product.namecompany}</strong>
             </div>
           </div>
         </div>
@@ -280,11 +390,11 @@ function Product() {
               <p>Проверьте информацию перед оплатой.</p>
 
               <div className="product-modal-product">
-                <img src={product.images[0]} alt={product.name} />
+                <img src={images[0]} alt={product.name} />
 
                 <div>
                   <strong>{product.name}</strong>
-                  <span>Цвет: {selectedColor.name}</span>
+                  <span>Цвет: {selectedColor}</span>
                   <span>Размер: {selectedSize}</span>
                   <span>Количество: {quantity} шт.</span>
                 </div>
@@ -308,8 +418,12 @@ function Product() {
                   Отменить
                 </button>
 
-                <button className="product-modal-pay" onClick={payOrder}>
-                  Оплатить
+                <button
+                  className="product-modal-pay"
+                  onClick={payOrder}
+                  disabled={paying}
+                >
+                  {paying ? "Оплата..." : "Оплатить"}
                 </button>
               </div>
             </div>
