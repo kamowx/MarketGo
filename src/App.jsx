@@ -18,6 +18,10 @@ import Stores from "./screens/stores";
 import Product from "./screens/product";
 import Storeinfo from "./screens/storeinfo";
 
+// Новые страницы
+import Cart from "./screens/cart";
+import Checkout from "./screens/checkout";
+
 function App() {
   return (
     <BrowserRouter>
@@ -37,6 +41,10 @@ function App() {
         <Route path="/stores" element={<Stores />} />
         <Route path="/product/:id" element={<Product />} />
         <Route path="/storeinfo/:id" element={<Storeinfo />} />
+
+        {/* Корзина и оформление заказа */}
+        <Route path="/cart/:businessId" element={<Cart />} />
+        <Route path="/checkout/:businessId" element={<Checkout />} />
       </Routes>
     </BrowserRouter>
   );

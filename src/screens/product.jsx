@@ -1,11 +1,10 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, Link } from "react-router-dom";
 import axios from "axios";
 
 const USERS_URL = "https://6aedd445a677fe0fc14f8ae2.mockapi.io/users";
 const PRODUCTS_URL = "https://6af02a41b9925b27ce173abb.mockapi.io/products";
 const BUSINESS_URL = "https://6aedd445a677fe0fc14f8ae2.mockapi.io/buisness";
-const ORDERS_URL = "https://6af02a41b9925b27ce173abb.mockapi.io/orders";
 
 function Product() {
   const navigate = useNavigate();
@@ -22,9 +21,31 @@ function Product() {
   const [showModal, setShowModal] = useState(false);
 
   const [loading, setLoading] = useState(true);
-  const [paying, setPaying] = useState(false);
+  const [cartCount, setCartCount] = useState(0);
 
-  // Пол товар
+  // Получаем количество товаров в корзине текущего магазина
+  const getCartCount = (currentBusinessId = business?.id) => {
+    if (!currentBusinessId) {
+      setCartCount(0);
+      return;
+    }
+
+    try {
+      const cartKey = `cart_${currentBusinessId}`;
+      const cart = JSON.parse(localStorage.getItem(cartKey) || "[]");
+
+      const count = cart.reduce(
+        (sum, item) => sum + Number(item.quantity || 1),
+        0,
+      );
+
+      setCartCount(count);
+    } catch (error) {
+      setCartCount(0);
+    }
+  };
+
+  // Получение товара
   const getProduct = async () => {
     try {
       const uid = localStorage.getItem("uid")?.replaceAll('"', "");
@@ -34,7 +55,6 @@ function Product() {
         return;
       }
 
-      // Получае выб тов
       const productResponse = await axios.get(`${PRODUCTS_URL}/${id}`);
 
       setProduct(productResponse.data);
@@ -61,6 +81,11 @@ function Product() {
       );
 
       setBusiness(currentBusiness || null);
+
+      // Загружаем количество товаров именно этого магазина
+      if (currentBusiness) {
+        getCartCount(currentBusiness.id);
+      }
     } catch (error) {
       console.log("Ошибка получения данных:", error);
       alert("Не удалось загрузить товар");
@@ -136,17 +161,10 @@ function Product() {
 
   const formatPrice = (price) => Number(price).toLocaleString("ru-RU");
 
-  // Оформление и оплата заказа
-  const payOrder = async () => {
-    if (paying) return;
-
+  // Добавление товара в отдельную корзину магазина
+  const addToCart = () => {
     if (!user) {
       alert("Пользователь не найден");
-      return;
-    }
-
-    if (balance < total) {
-      alert("Суммы не хватает на балансе");
       return;
     }
 
@@ -155,58 +173,74 @@ function Product() {
       return;
     }
 
+    if (!selectedColor || !selectedSize) {
+      alert("Выберите цвет и размер товара");
+      return;
+    }
+
     try {
-      setPaying(true);
+      const cartKey = `cart_${business.id}`;
 
-      const newBalance = balance - total;
+      let savedCart = [];
 
-      // Сохраняем заказ в MockAPI
-      const orderResponse = await axios.post(ORDERS_URL, {
-        createdAt: new Date().toISOString(),
-
-        buyerId: user.id,
-        productId: product.id,
-
-        avatar: product.avatar,
-        name: product.name,
-        price: total,
-
-        size: selectedSize,
-        color: selectedColor,
-        quantity: quantity,
-
-        orderstatus: "Ожидание",
-
-        firstname: user.firstname,
-        lastname: user.lastname,
-        numberphone: user.numberphone,
-
-        adrescompany: business.adrescompany,
-        adres: user.adres,
-      });
-
-      // Обнов баланс
       try {
-        const balanceResponse = await axios.put(`${USERS_URL}/${user.id}`, {
-          ...user,
-          balance: newBalance,
-        });
+        savedCart = JSON.parse(localStorage.getItem(cartKey) || "[]");
 
-        setUser(balanceResponse.data);
-      } catch (balanceError) {
-        await axios.delete(`${ORDERS_URL}/${orderResponse.data.id}`);
-        throw balanceError;
+        if (!Array.isArray(savedCart)) {
+          savedCart = [];
+        }
+      } catch {
+        savedCart = [];
       }
 
-      alert("Заказ успешно оплачен!");
+      // Проверяем, есть ли такой же товар с таким же цветом и размером
+      const existingIndex = savedCart.findIndex(
+        (item) =>
+          String(item.id) === String(product.id) &&
+          String(item.color) === String(selectedColor) &&
+          String(item.size) === String(selectedSize),
+      );
 
-      setShowModal(false);
-      navigate("/orderstatus");
+      if (existingIndex !== -1) {
+        // Если уже есть, увеличиваем количество
+        savedCart[existingIndex].quantity =
+          Number(savedCart[existingIndex].quantity || 1) + Number(quantity);
+      } else {
+        // Добавляем новый товар
+        savedCart.push({
+          id: product.id,
+          userId: product.userId,
+
+          avatar: product.avatar,
+          name: product.name,
+          description: product.description,
+          category: product.category,
+
+          price: Number(product.price),
+          weight: Number(product.weight || 0),
+
+          color: selectedColor,
+          size: selectedSize,
+          quantity: Number(quantity),
+
+          namecompany: business.name || product.namecompany || "",
+          adrescompany: business.adrescompany || "",
+          avatarcompany: business.avatar || "",
+          categorycompany: business.category || "",
+          businessId: business.id,
+        });
+      }
+
+      // Сохраняем только в корзину текущего магазина
+      localStorage.setItem(cartKey, JSON.stringify(savedCart));
+
+      // Обновляем количество товаров текущего магазина
+      getCartCount(business.id);
+
+      setShowModal(true);
     } catch (error) {
-      console.log("Ошибка оформления заказа:", error);
-      alert("Не удалось оформить заказ. Попробуйте ещё раз.");
-    } finally {
-      setPaying(false);
+      console.log("Ошибка добавления в корзину:", error);
+      alert("Не удалось добавить товар в корзину");
     }
   };
 
@@ -226,10 +260,18 @@ function Product() {
   return (
     <div className="product-page">
       <main className="product-container">
-        <button className="product-back" onClick={() => navigate(-1)}>
-          <i className="fa-solid fa-arrow-left"></i>
-          Назад
-        </button>
+        <div className="product-top-actions">
+          <button className="product-back" onClick={() => navigate(-1)}>
+            <i className="fa-solid fa-arrow-left"></i>
+            Назад
+          </button>
+
+          <Link to={`/cart/${business?.id}`} className="product-cart-link">
+            <i className="fa-solid fa-cart-shopping"></i>
+            Корзина
+            <span>{cartCount}</span>
+          </Link>
+        </div>
 
         <div className="product-layout">
           {/* ФОТО ТОВАРА */}
@@ -353,12 +395,8 @@ function Product() {
               <strong>{formatPrice(total)} сом</strong>
             </div>
 
-            <button
-              className="product-order-button"
-              onClick={() => setShowModal(true)}
-            >
-              <i className="fa-solid fa-bag-shopping"></i>
-              Заказать
+            <button className="product-order-button" onClick={addToCart}>
+              <i className="fa-solid fa-bag-shopping"></i>В корзину
             </button>
 
             <div className="product-store">
@@ -368,7 +406,7 @@ function Product() {
           </div>
         </div>
 
-        {/* МОДАЛЬНОЕ ОКНО */}
+        {/* МОДАЛЬНОЕ ОКНО ПОСЛЕ ДОБАВЛЕНИЯ */}
         {showModal && (
           <div
             className="product-modal-overlay"
@@ -383,11 +421,12 @@ function Product() {
               </button>
 
               <div className="product-modal-icon">
-                <i className="fa-solid fa-wallet"></i>
+                <i className="fa-solid fa-basket-shopping"></i>
               </div>
 
-              <h2>Подтвердить заказ?</h2>
-              <p>Проверьте информацию перед оплатой.</p>
+              <h2>Товар добавлен!</h2>
+
+              <p>Товар успешно добавлен в корзину этого магазина.</p>
 
               <div className="product-modal-product">
                 <img src={images[0]} alt={product.name} />
@@ -397,17 +436,18 @@ function Product() {
                   <span>Цвет: {selectedColor}</span>
                   <span>Размер: {selectedSize}</span>
                   <span>Количество: {quantity} шт.</span>
+                  <span>Вес: {Number(product.weight || 0) * quantity} кг</span>
                 </div>
               </div>
 
               <div className="product-modal-row">
-                <span>Мой баланс</span>
-                <strong>{formatPrice(balance)} сом</strong>
+                <span>Стоимость</span>
+                <strong>{formatPrice(total)} сом</strong>
               </div>
 
               <div className="product-modal-row">
-                <span>К оплате</span>
-                <strong>{formatPrice(total)} сом</strong>
+                <span>Всего товаров в корзине</span>
+                <strong>{cartCount} шт.</strong>
               </div>
 
               <div className="product-modal-actions">
@@ -415,15 +455,14 @@ function Product() {
                   className="product-modal-cancel"
                   onClick={() => setShowModal(false)}
                 >
-                  Отменить
+                  Продолжить покупки
                 </button>
 
                 <button
                   className="product-modal-pay"
-                  onClick={payOrder}
-                  disabled={paying}
+                  onClick={() => navigate(`/cart/${business.id}`)}
                 >
-                  {paying ? "Оплата..." : "Оплатить"}
+                  Перейти в корзину
                 </button>
               </div>
             </div>

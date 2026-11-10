@@ -1,97 +1,115 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 
-const USERS_URL = "https://6aedd445a677fe0fc14f8ae2.mockapi.io/users";
 const ORDERS_URL = "https://6af02a41b9925b27ce173abb.mockapi.io/orders";
+const USERS_URL = "https://6aedd445a677fe0fc14f8ae2.mockapi.io/users";
 
 function Orderstatus() {
   const navigate = useNavigate();
+  const { id } = useParams();
 
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [receiving, setReceiving] = useState(false);
 
   const statuses = [
-    {
-      name: "Ожидание",
-      icon: "fa-regular fa-clock",
-    },
-    {
-      name: "Подтверждено",
-      icon: "fa-solid fa-circle-check",
-    },
-    {
-      name: "Едет",
-      icon: "fa-solid fa-truck-fast",
-    },
-    {
-      name: "Получить",
-      icon: "fa-solid fa-box",
-    },
-    {
-      name: "Передано",
-      icon: "fa-solid fa-box-open",
-    },
-    {
-      name: "На дороге",
-      icon: "fa-solid fa-truck",
-    },
-    {
-      name: "Приехал",
-      icon: "fa-solid fa-location-dot",
-    },
-    {
-      name: "Получено",
-      icon: "fa-solid fa-check",
-    },
-    {
-      name: "Завершен",
-      icon: "fa-solid fa-circle-check",
-    },
+    { name: "Ожидание", icon: "fa-regular fa-clock" },
+    { name: "Подтверждено", icon: "fa-solid fa-circle-check" },
+    { name: "Ожидание курьера", icon: "fa-solid fa-truck" },
+    { name: "Едет", icon: "fa-solid fa-truck-fast" },
+    { name: "Получить", icon: "fa-solid fa-box" },
+    { name: "Передано", icon: "fa-solid fa-box-open" },
+    { name: "На дороге", icon: "fa-solid fa-truck" },
+    { name: "Приехал", icon: "fa-solid fa-location-dot" },
+    { name: "Получено", icon: "fa-solid fa-check" },
+    { name: "Завершен", icon: "fa-solid fa-circle-check" },
   ];
+
+  const getProducts = (currentOrder) => {
+    if (Array.isArray(currentOrder.products)) return currentOrder.products;
+
+    if (currentOrder.name) {
+      return [
+        {
+          id: currentOrder.productId,
+          name: currentOrder.name,
+          avatar: currentOrder.avatar,
+          price: currentOrder.price,
+          color: currentOrder.color,
+          size: currentOrder.size,
+          quantity: currentOrder.quantity || 1,
+          weight: currentOrder.weight || 0,
+        },
+      ];
+    }
+
+    return [];
+  };
+
+  const getWeight = (currentOrder) =>
+    getProducts(currentOrder).reduce(
+      (sum, item) =>
+        sum + Number(item.weight || 0) * Number(item.quantity || 1),
+      0,
+    );
+
+  const getStatusIndex = (status) => {
+    const current = String(status || "").toLowerCase();
+
+    const statusMap = {
+      ожидание: 0,
+      новый: 0,
+      подтверждено: 1,
+      "ожидание курьера": 2,
+      едет: 3,
+      "в пути": 3,
+      получить: 4,
+      передано: 5,
+      "на дороге": 6,
+      приехал: 7,
+      получено: 8,
+      завершен: 9,
+      завершён: 9,
+    };
+
+    return statusMap[current] ?? 0;
+  };
 
   const getOrder = async () => {
     try {
-      const uid = localStorage.getItem("uid")?.replaceAll('"', "");
+      const uid = String(localStorage.getItem("uid") || "").replaceAll('"', "");
 
       if (!uid) {
-        navigate("/");
+        navigate("/", { replace: true });
         return;
       }
 
       const usersResponse = await axios.get(USERS_URL);
 
       const currentUser = usersResponse.data.find(
-        (item) => String(item.uid).replaceAll('"', "") === String(uid),
+        (item) => String(item.uid).replaceAll('"', "") === uid,
       );
 
       if (!currentUser) {
         alert("Пользователь не найден");
-        navigate("/");
+        navigate("/", { replace: true });
         return;
       }
 
-      const ordersResponse = await axios.get(ORDERS_URL);
+      const response = await axios.get(`${ORDERS_URL}/${id}`);
 
-      const userOrders = ordersResponse.data.filter(
-        (item) =>
-          String(item.firstname) === String(currentUser.firstname) &&
-          String(item.lastname) === String(currentUser.lastname) &&
-          String(item.numberphone) === String(currentUser.numberphone),
-      );
-
-      if (userOrders.length === 0) {
-        setOrder(null);
+      if (String(response.data.buyerId) !== String(currentUser.id)) {
+        alert("Этот заказ вам не принадлежит");
+        navigate("/myorders", { replace: true });
         return;
       }
 
-      userOrders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-
-      setOrder(userOrders[0]);
+      setOrder(response.data);
     } catch (error) {
       console.log("Ошибка получения заказа:", error);
       alert("Не удалось загрузить заказ");
+      setOrder(null);
     } finally {
       setLoading(false);
     }
@@ -99,67 +117,152 @@ function Orderstatus() {
 
   useEffect(() => {
     getOrder();
-  }, []);
+  }, [id]);
 
-  // Определяем этап заказа
-  const getStatusIndex = (status) => {
-    const current = String(status || "").toLowerCase();
-
-    if (current === "ожидание" || current === "новый") return 1;
-
-    if (
-      current === "подтверждено" ||
-      current === "подтвержденный" ||
-      current === "подтверждённый" ||
-      current === "курьер принял заказ"
-    ) {
-      return 2;
-    }
-
-    if (current === "едет" || current === "в пути") return 3;
-
-    if (current === "получить") return 4;
-
-    if (current === "передано") return 5;
-
-    if (current === "на дороге") return 6;
-
-    if (current === "приехал") return 7;
-
-    if (current === "получено") return 8;
-
-    if (current === "завершен" || current === "завершён") return 9;
-
-    return 1;
-  };
-
-  // Покупатель подтверждает получение
+  // Покупатель подтверждает получение и оплачивает доставку
   const receiveOrder = async () => {
     try {
       setReceiving(true);
 
-      const response = await axios.get(`${ORDERS_URL}/${order.id}`);
+      const uid = String(localStorage.getItem("uid") || "").replaceAll('"', "");
 
-      if (response.data.orderstatus !== "Приехал") {
-        alert("Курьер ещё не отметил прибытие");
-        setOrder(response.data);
+      const orderResponse = await axios.get(`${ORDERS_URL}/${id}`);
+      const freshOrder = orderResponse.data;
+
+      if (freshOrder.deliveryPaid === true) {
+        alert("Доставка уже оплачена");
+        setOrder(freshOrder);
         return;
       }
 
-      await axios.put(`${ORDERS_URL}/${order.id}`, {
-        ...response.data,
-        orderstatus: "Получено",
-      });
+      if (freshOrder.deliveryPaymentStatus === "processing") {
+        alert("Оплата уже обрабатывается. Попробуйте обновить страницу.");
+        return;
+      }
 
-      setOrder({
-        ...response.data,
-        orderstatus: "Получено",
-      });
+      if (freshOrder.orderstatus !== "Приехал") {
+        alert("Курьер ещё не отметил прибытие");
+        setOrder(freshOrder);
+        return;
+      }
 
-      alert("Вы получили заказ!");
+      const usersResponse = await axios.get(USERS_URL);
+
+      const buyer = usersResponse.data.find(
+        (item) => String(item.uid).replaceAll('"', "") === uid,
+      );
+
+      if (!buyer || String(freshOrder.buyerId) !== String(buyer.id)) {
+        alert("Не удалось проверить покупателя");
+        return;
+      }
+
+      const courier = usersResponse.data.find(
+        (item) =>
+          String(item.id) === String(freshOrder.deliveryId) &&
+          item.role === "courier",
+      );
+
+      if (!courier) {
+        alert("Курьер не найден");
+        return;
+      }
+
+      const totalWeight = getWeight(freshOrder);
+      const deliveryPrice = totalWeight * 100;
+
+      const buyerBalance = Number(buyer.balance || 0);
+      const courierBalance = Number(courier.balance || 0);
+
+      if (buyerBalance < deliveryPrice) {
+        alert(
+          `Недостаточно денег на балансе. Нужно ${deliveryPrice} сом, у вас ${buyerBalance} сом.`,
+        );
+        return;
+      }
+
+      // Сначала блокируем повторную оплату
+      const lockedOrder = {
+        ...freshOrder,
+        deliveryPaymentStatus: "processing",
+      };
+
+      await axios.put(`${ORDERS_URL}/${id}`, lockedOrder);
+
+      let buyerUpdated = false;
+      let courierUpdated = false;
+
+      try {
+        // Списываем деньги с покупателя
+        await axios.put(`${USERS_URL}/${buyer.id}`, {
+          ...buyer,
+          balance: buyerBalance - deliveryPrice,
+        });
+
+        buyerUpdated = true;
+
+        // Начисляем деньги курьеру
+        await axios.put(`${USERS_URL}/${courier.id}`, {
+          ...courier,
+          balance: courierBalance + deliveryPrice,
+        });
+
+        courierUpdated = true;
+
+        // Завершаем заказ и отмечаем оплату
+        const completedStores = Array.isArray(lockedOrder.storeOrders)
+          ? lockedOrder.storeOrders.map((store) => ({
+              ...store,
+              orderstatus: "Получено",
+            }))
+          : lockedOrder.storeOrders;
+
+        const completedOrder = {
+          ...lockedOrder,
+          orderstatus: "Получено",
+          storeOrders: completedStores,
+          deliveryPrice,
+          deliveryWeight: totalWeight,
+          deliveryPaid: true,
+          deliveryPaymentStatus: "paid",
+          deliveryPaidAt: new Date().toISOString(),
+        };
+
+        await axios.put(`${ORDERS_URL}/${id}`, completedOrder);
+
+        setOrder(completedOrder);
+
+        alert(
+          `Заказ получен!\nС покупателя списано: ${deliveryPrice} сом.\nКурьеру начислено: ${deliveryPrice} сом.`,
+        );
+      } catch (paymentError) {
+        console.log("Ошибка перевода денег:", paymentError);
+
+        // Если перевод не завершился, возвращаем изменённые балансы
+        if (courierUpdated) {
+          await axios.put(`${USERS_URL}/${courier.id}`, {
+            ...courier,
+            balance: courierBalance,
+          });
+        }
+
+        if (buyerUpdated) {
+          await axios.put(`${USERS_URL}/${buyer.id}`, {
+            ...buyer,
+            balance: buyerBalance,
+          });
+        }
+
+        await axios.put(`${ORDERS_URL}/${id}`, {
+          ...lockedOrder,
+          deliveryPaymentStatus: "unpaid",
+        });
+
+        throw paymentError;
+      }
     } catch (error) {
       console.log("Ошибка получения заказа:", error);
-      alert("Не удалось подтвердить получение");
+      alert("Не удалось завершить оплату доставки");
     } finally {
       setReceiving(false);
     }
@@ -189,16 +292,17 @@ function Orderstatus() {
           </div>
 
           <div className="order-status-information">
-            <h2>Заказов пока нет</h2>
-            <button onClick={() => navigate("/home")}>
-              Перейти к покупкам
-            </button>
+            <h2>Заказ не найден</h2>
+            <button onClick={() => navigate("/myorders")}>Мои заказы</button>
           </div>
         </div>
       </div>
     );
   }
 
+  const products = getProducts(order);
+  const totalWeight = getWeight(order);
+  const deliveryPrice = totalWeight * 100;
   const currentStatus = getStatusIndex(order.orderstatus);
 
   const orderDate = order.createdAt
@@ -208,7 +312,6 @@ function Orderstatus() {
   return (
     <div className="order-status-page">
       <div className="order-status-container">
-        {/* Верхняя часть */}
         <div className="order-status-header">
           <button className="order-status-back" onClick={() => navigate(-1)}>
             <i className="fa-solid fa-arrow-left"></i>
@@ -220,36 +323,47 @@ function Orderstatus() {
           </div>
         </div>
 
-        {/* Карточка товара */}
-        <div className="order-status-product">
-          <div className="order-status-image">
-            <img src={order.avatar} alt={order.name} />
-          </div>
-
-          <div className="order-status-product-info">
-            <span className="order-status-label">ЗАКАЗ № {order.id}</span>
-
-            <h2>{order.name}</h2>
-
-            <div className="order-status-details">
-              <p>
-                Цвет: <strong>{order.color || "—"}</strong>
-              </p>
-
-              <p>
-                Размер: <strong>{order.size || "—"}</strong>
-              </p>
-
-              <p>
-                Количество: <strong>{order.quantity || 1} шт.</strong>
-              </p>
+        {products.map((item, index) => (
+          <div className="order-status-product" key={item.id || index}>
+            <div className="order-status-image">
+              <img src={item.avatar} alt={item.name} />
             </div>
 
-            <h3>{Number(order.price || 0).toLocaleString("ru-RU")} сом</h3>
-          </div>
-        </div>
+            <div className="order-status-product-info">
+              <span className="order-status-label">ЗАКАЗ № {order.id}</span>
+              <h2>{item.name}</h2>
 
-        {/* Статус доставки */}
+              <div className="order-status-details">
+                <p>
+                  Цвет: <strong>{item.color || "—"}</strong>
+                </p>
+
+                <p>
+                  Размер: <strong>{item.size || "—"}</strong>
+                </p>
+
+                <p>
+                  Количество: <strong>{item.quantity || 1} шт.</strong>
+                </p>
+
+                <p>
+                  Вес:{" "}
+                  <strong>
+                    {Number(item.weight || 0) * Number(item.quantity || 1)} кг
+                  </strong>
+                </p>
+              </div>
+
+              <h3>
+                {(
+                  Number(item.price || 0) * Number(item.quantity || 1)
+                ).toLocaleString("ru-RU")}{" "}
+                сом
+              </h3>
+            </div>
+          </div>
+        ))}
+
         <div className="order-status-progress-card">
           <div className="order-status-title">
             <div>
@@ -263,7 +377,7 @@ function Orderstatus() {
           <div className="order-status-timeline">
             {statuses.map((item, index) => {
               const completed = index < currentStatus;
-              const active = index === currentStatus - 1;
+              const active = index === currentStatus;
 
               return (
                 <div className="order-status-step" key={index}>
@@ -296,22 +410,21 @@ function Orderstatus() {
           </div>
         </div>
 
-        {/* Кнопка получения */}
         {order.orderstatus === "Приехал" && (
           <button
             className="order-status-receive-button"
             onClick={receiveOrder}
-            disabled={receiving}
+            disabled={receiving || order.deliveryPaid}
           >
             <i className="fa-solid fa-box-open"></i>
-            {receiving ? "Подтверждение..." : "Получить заказ"}
+            {receiving ? "Оплата..." : `Получить заказ · ${deliveryPrice} сом`}
           </button>
         )}
 
         {order.orderstatus === "Получено" && (
           <div className="order-status-received">
             <i className="fa-solid fa-circle-check"></i>
-            Вы получили заказ!
+            Вы получили заказ! Доставка оплачена.
           </div>
         )}
 
@@ -322,7 +435,6 @@ function Orderstatus() {
           </div>
         )}
 
-        {/* Информация о заказе */}
         <div className="order-status-information">
           <h2>Информация о заказе</h2>
 
@@ -338,7 +450,17 @@ function Orderstatus() {
 
           <div className="order-status-info-row">
             <span>Магазин</span>
+            <strong>{order.namecompany || "—"}</strong>
+          </div>
+
+          <div className="order-status-info-row">
+            <span>Адрес магазина</span>
             <strong>{order.adrescompany || "—"}</strong>
+          </div>
+
+          <div className="order-status-info-row">
+            <span>Телефон магазина</span>
+            <strong>{order.numberphonecompany || "—"}</strong>
           </div>
 
           <div className="order-status-info-row">
@@ -347,14 +469,37 @@ function Orderstatus() {
           </div>
 
           <div className="order-status-info-row">
-            <span>Способ оплаты</span>
+            <span>Телефон покупателя</span>
+            <strong>{order.numberphone || "—"}</strong>
+          </div>
+
+          <div className="order-status-info-row">
+            <span>Общий вес</span>
+            <strong>{totalWeight} кг</strong>
+          </div>
+
+          <div className="order-status-info-row">
+            <span>Цена доставки (100 сом/кг)</span>
+            <strong>{deliveryPrice.toLocaleString("ru-RU")} сом</strong>
+          </div>
+
+          <div className="order-status-info-row">
+            <span>Статус оплаты доставки</span>
+            <strong>{order.deliveryPaid ? "Оплачено" : "Не оплачено"}</strong>
+          </div>
+
+          <div className="order-status-info-row">
+            <span>Способ оплаты товаров</span>
             <strong>Мой баланс</strong>
           </div>
 
           <div className="order-status-info-row total">
-            <span>Итого</span>
+            <span>Итого за товары</span>
             <strong>
-              {Number(order.price || 0).toLocaleString("ru-RU")} сом
+              {Number(order.totalPrice ?? order.price ?? 0).toLocaleString(
+                "ru-RU",
+              )}{" "}
+              сом
             </strong>
           </div>
         </div>

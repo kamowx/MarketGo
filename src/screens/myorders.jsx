@@ -11,7 +11,6 @@ function Myorders() {
 
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("Все");
-  const [user, setUser] = useState(null);
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -31,7 +30,7 @@ function Myorders() {
         const usersResponse = await axios.get(USERS_URL);
 
         const currentUser = usersResponse.data.find(
-          (item) => String(item.uid) === uid,
+          (item) => String(item.uid).replaceAll('"', "") === uid,
         );
 
         if (!currentUser) {
@@ -49,8 +48,6 @@ function Myorders() {
         }
 
         if (cancelled) return;
-
-        setUser(currentUser);
 
         const ordersResponse = await axios.get(ORDERS_URL);
 
@@ -97,7 +94,11 @@ function Myorders() {
       orderStatus === "Подтверждённый" ||
       orderStatus === "Курьер принял заказ" ||
       orderStatus === "Едет" ||
-      orderStatus === "В пути"
+      orderStatus === "В пути" ||
+      orderStatus === "Получить" ||
+      orderStatus === "Передано" ||
+      orderStatus === "На дороге" ||
+      orderStatus === "Приехал"
     ) {
       return "Едет";
     }
@@ -109,11 +110,35 @@ function Myorders() {
     return orderStatus;
   };
 
-  // Фильтрация заказов
+  const getProducts = (order) => {
+    if (Array.isArray(order.products)) {
+      return order.products;
+    }
+
+    if (order.name) {
+      return [
+        {
+          id: order.productId,
+          name: order.name,
+          avatar: order.avatar,
+          price: order.price,
+          quantity: order.quantity || 1,
+        },
+      ];
+    }
+
+    return [];
+  };
+
+  // Поиск по всем товарам внутри заказа
   const filteredOrders = orders.filter((item) => {
-    const matchesSearch = (item.name || "")
-      .toLowerCase()
-      .includes(search.toLowerCase());
+    const products = getProducts(item);
+
+    const matchesSearch =
+      (item.namecompany || "").toLowerCase().includes(search.toLowerCase()) ||
+      products.some((product) =>
+        (product.name || "").toLowerCase().includes(search.toLowerCase()),
+      );
 
     const matchesStatus =
       status === "Все" || getStatusName(item.orderstatus) === status;
@@ -133,7 +158,7 @@ function Myorders() {
         <div className="market-search">
           <i className="fa-solid fa-magnifying-glass"></i>
           <input
-            placeholder="Найти заказ..."
+            placeholder="Найти товар или магазин..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -154,7 +179,7 @@ function Myorders() {
         <div className="market-section-title">
           <div>
             <p>ИСТОРИЯ ПОКУПОК</p>
-            <h2>Ваши товары</h2>
+            <h2>Ваши заказы</h2>
           </div>
 
           <span>{filteredOrders.length} заказа</span>
@@ -173,44 +198,61 @@ function Myorders() {
               <p>Здесь будут отображаться ваши покупки</p>
             </div>
           ) : (
-            filteredOrders.map((item) => (
-              <div
-                className="market-order-card"
-                key={item.id}
-                onClick={() => navigate(`/orderstatus/${item.id}`)}
-              >
-                <img src={item.avatar} alt={item.name} />
+            filteredOrders.map((item) => {
+              const products = getProducts(item);
 
-                <div className="market-order-info">
-                  <p>Заказ №{item.id}</p>
-
-                  <h3>{item.name}</h3>
-
-                  <span>
-                    Дата:{" "}
-                    {item.createdAt
-                      ? new Date(item.createdAt).toLocaleDateString("ru-RU")
-                      : "Не указана"}
-                  </span>
-
-                  <strong>
-                    {Number(item.price || 0).toLocaleString("ru-RU")} сом
-                  </strong>
-                </div>
-
+              return (
                 <div
-                  className={`market-order-status status-${
-                    getStatusName(item.orderstatus) === "Едет"
-                      ? "moving"
-                      : getStatusName(item.orderstatus) === "Получено"
-                        ? "done"
-                        : "new"
-                  }`}
+                  className="market-order-card"
+                  key={item.id}
+                  onClick={() => navigate(`/orderstatus/${item.id}`)}
                 >
-                  {getStatusName(item.orderstatus)}
+                  <div className="market-order-images">
+                    {products.slice(0, 3).map((product, index) => (
+                      <img
+                        key={product.id || index}
+                        src={product.avatar}
+                        alt={product.name}
+                      />
+                    ))}
+                  </div>
+
+                  <div className="market-order-info">
+                    <p>Заказ №{item.id}</p>
+
+                    <h3>{item.namecompany || "Магазин"}</h3>
+
+                    <span>{products.length} товаров</span>
+
+                    <span>
+                      Дата:{" "}
+                      {item.createdAt
+                        ? new Date(item.createdAt).toLocaleDateString("ru-RU")
+                        : "Не указана"}
+                    </span>
+
+                    <strong>
+                      {Number(
+                        item.totalPrice ?? item.price ?? 0,
+                      ).toLocaleString("ru-RU")}{" "}
+                      сом
+                    </strong>
+                  </div>
+
+                  <div
+                    className={`market-order-status status-${
+                      getStatusName(item.orderstatus) === "Едет"
+                        ? "moving"
+                        : getStatusName(item.orderstatus) === "Получено"
+                          ? "done"
+                          : "new"
+                    }`}
+                  >
+                    {getStatusName(item.orderstatus)}
+                  </div>
                 </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       </main>
