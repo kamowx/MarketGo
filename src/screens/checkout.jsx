@@ -18,6 +18,12 @@ function Checkout() {
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
 
+  // Получение заказа
+  const [receivingMethod, setReceivingMethod] = useState("home");
+  const [pickupPoints, setPickupPoints] = useState([]);
+  const [selectedPickupId, setSelectedPickupId] = useState("");
+  const [pickupDeliveryMethod, setPickupDeliveryMethod] = useState("");
+
   const [loading, setLoading] = useState(true);
   const [paying, setPaying] = useState(false);
 
@@ -70,7 +76,14 @@ function Checkout() {
       setPhone(currentUser.numberphone || "");
       setAddress(currentUser.adres || "");
 
-      // Находим магазин
+      // Получаем подтверждённые пункты передачи
+      const allPickupPoints = usersResponse.data.filter(
+        (item) =>
+          item.role === "pickuppoint" && item.status === "Подтвержденный",
+      );
+
+      setPickupPoints(allPickupPoints);
+
       const businessResponse = await axios.get(BUSINESS_URL);
 
       const currentBusiness = businessResponse.data.find(
@@ -109,11 +122,18 @@ function Checkout() {
     getCheckout();
   }, [businessId]);
 
+  // Выбранный пункт передачи
+  const selectedPickup = pickupPoints.find(
+    (item) => String(item.id) === String(selectedPickupId),
+  );
+
+  // Итоговая стоимость товаров
   const totalPrice = products.reduce(
     (sum, item) => sum + Number(item.price || 0) * Number(item.quantity || 1),
     0,
   );
 
+  // Общий вес
   const totalWeight = products.reduce(
     (sum, item) => sum + Number(item.weight || 0) * Number(item.quantity || 1),
     0,
@@ -123,6 +143,7 @@ function Checkout() {
 
   const formatPrice = (price) => Number(price || 0).toLocaleString("ru-RU");
 
+  // Оформление заказа
   const payOrder = async () => {
     if (paying) return;
 
@@ -136,9 +157,28 @@ function Checkout() {
       return;
     }
 
-    if (!phone.trim() || !address.trim()) {
-      alert("Заполните номер телефона и адрес доставки");
+    if (!phone.trim()) {
+      alert("Введите номер телефона");
       return;
+    }
+
+    // Получение на дом
+    if (receivingMethod === "home" && !address.trim()) {
+      alert("Введите адрес доставки");
+      return;
+    }
+
+    // Получение через пункт передачи
+    if (receivingMethod === "pickup") {
+      if (!selectedPickupId || !selectedPickup) {
+        alert("Выберите пункт передачи");
+        return;
+      }
+
+      if (!pickupDeliveryMethod) {
+        alert("Выберите самовывоз или доставку");
+        return;
+      }
     }
 
     const buyerBalance = Number(user.balance || 0);
@@ -151,6 +191,19 @@ function Checkout() {
     }
 
     const sellerBalance = Number(seller.balance || 0);
+
+    // Информация о получении
+    const pickupId =
+      receivingMethod === "pickup" ? String(selectedPickup.id) : "Нет";
+
+    const statusdostavka =
+      receivingMethod === "pickup" ? pickupDeliveryMethod : "Нет";
+
+    // Адрес получения заказа
+    const orderAddress =
+      receivingMethod === "pickup"
+        ? selectedPickup.adres || "Адрес не указан"
+        : address.trim();
 
     // Все товары текущего магазина
     const orderProducts = products.map((item) => ({
@@ -178,10 +231,14 @@ function Checkout() {
       numberphonecompany: seller.numberphone || "",
 
       products: orderProducts,
-
       productId: productIds,
+
       totalPrice: totalPrice,
       allweight: totalWeight,
+
+      // Информация о получении
+      pickupId: pickupId,
+      statusdostavka: statusdostavka,
 
       orderstatus: "Ожидание",
 
@@ -198,7 +255,7 @@ function Checkout() {
       productId: productIds,
 
       numberphone: phone.trim(),
-      adres: address.trim(),
+      adres: orderAddress,
 
       allweight: totalWeight,
 
@@ -211,8 +268,12 @@ function Checkout() {
       totalPrice: totalPrice,
       price: totalPrice,
 
-      // Новое поле: заказы по магазинам
+      // Заказы по магазинам
       storeOrders: [storeOrder],
+
+      // Информация о получении
+      pickupId: pickupId,
+      statusdostavka: statusdostavka,
 
       createdAt: new Date().toISOString(),
 
@@ -235,7 +296,10 @@ function Checkout() {
         ...user,
         balance: buyerBalance - totalPrice,
         numberphone: phone.trim(),
-        adres: address.trim(),
+
+        // Сохраняем домашний адрес пользователя,
+        // а не адрес пункта передачи
+        adres: receivingMethod === "home" ? address.trim() : user.adres || "",
       };
 
       await axios.put(`${USERS_URL}/${user.id}`, updatedBuyer);
@@ -339,7 +403,7 @@ function Checkout() {
             <div className="checkout-card">
               <div className="checkout-card-title">
                 <i className="fa-solid fa-location-dot"></i>
-                <h3>Доставка</h3>
+                <h3>Получение заказа</h3>
               </div>
 
               <div className="checkout-input-group">
@@ -352,15 +416,133 @@ function Checkout() {
                 />
               </div>
 
+              {/* Выбор места получения */}
               <div className="checkout-input-group">
-                <label>Адрес доставки</label>
-                <textarea
-                  value={address}
-                  onChange={(e) => setAddress(e.target.value)}
-                  placeholder="Введите ваш адрес"
-                  rows="3"
-                />
+                <label>Где хотите получить заказ?</label>
+
+                <div className="checkout-receiving-options">
+                  <button
+                    type="button"
+                    className={receivingMethod === "home" ? "active" : ""}
+                    onClick={() => {
+                      setReceivingMethod("home");
+                      setSelectedPickupId("");
+                      setPickupDeliveryMethod("");
+                    }}
+                  >
+                    <i className="fa-solid fa-house"></i>
+                    На дом
+                  </button>
+
+                  <button
+                    type="button"
+                    className={receivingMethod === "pickup" ? "active" : ""}
+                    onClick={() => {
+                      setReceivingMethod("pickup");
+                      setPickupDeliveryMethod("");
+                    }}
+                  >
+                    <i className="fa-solid fa-location-dot"></i>
+                    На пункт передачи
+                  </button>
+                </div>
               </div>
+
+              {/* Если получение на дом */}
+              {receivingMethod === "home" && (
+                <div className="checkout-input-group">
+                  <label>Адрес доставки</label>
+                  <textarea
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    placeholder="Введите ваш адрес"
+                    rows="3"
+                  />
+                </div>
+              )}
+
+              {/* Если получение на пункте передачи */}
+              {receivingMethod === "pickup" && (
+                <>
+                  <div className="checkout-input-group">
+                    <label>Выберите пункт передачи</label>
+
+                    <select
+                      value={selectedPickupId}
+                      onChange={(e) => {
+                        setSelectedPickupId(e.target.value);
+                        setPickupDeliveryMethod("");
+                      }}
+                    >
+                      <option value="">Выберите адрес пункта</option>
+
+                      {pickupPoints.map((item) => (
+                        <option key={item.id} value={item.id}>
+                          {item.adres || "Адрес не указан"} —{" "}
+                          {item.firstname || "Пункт передачи"}{" "}
+                          {item.lastname || ""}
+                        </option>
+                      ))}
+                    </select>
+
+                    {pickupPoints.length === 0 && (
+                      <p className="checkout-pickup-empty">
+                        Сейчас нет доступных пунктов передачи.
+                      </p>
+                    )}
+                  </div>
+
+                  {selectedPickup && (
+                    <div className="checkout-selected-pickup">
+                      <div className="checkout-selected-pickup-icon">
+                        <i className="fa-solid fa-location-dot"></i>
+                      </div>
+
+                      <div>
+                        <span>Выбранный пункт передачи</span>
+                        <strong>
+                          {selectedPickup.firstname} {selectedPickup.lastname}
+                        </strong>
+                        <p>{selectedPickup.adres || "Адрес не указан"}</p>
+                        <p>
+                          Телефон: {selectedPickup.numberphone || "Не указан"}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Самовывоз или доставка */}
+                  {selectedPickup && (
+                    <div className="checkout-input-group">
+                      <label>Как хотите получить заказ?</label>
+
+                      <div className="checkout-receiving-options">
+                        <button
+                          type="button"
+                          className={
+                            pickupDeliveryMethod === "Самовывоз" ? "active" : ""
+                          }
+                          onClick={() => setPickupDeliveryMethod("Самовывоз")}
+                        >
+                          <i className="fa-solid fa-person-walking"></i>
+                          Самовывоз
+                        </button>
+
+                        <button
+                          type="button"
+                          className={
+                            pickupDeliveryMethod === "Доставка" ? "active" : ""
+                          }
+                          onClick={() => setPickupDeliveryMethod("Доставка")}
+                        >
+                          <i className="fa-solid fa-truck-fast"></i>
+                          Доставка
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
             </div>
 
             {/* ИНФОРМАЦИЯ О МАГАЗИНЕ */}

@@ -8446,3 +8446,109 @@
   height: 75px;
   object-fit: cover;
 }
+
+/* Выбор места получения */
+.checkout-receiving-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.checkout-receiving-options button {
+  min-height: 48px;
+  padding: 10px;
+  border: 1px solid #e5e5e5;
+  background: #fff;
+  color: #555;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 9px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.checkout-receiving-options button.active {
+  background: #111;
+  border-color: #111;
+  color: #fff;
+}
+
+.checkout-receiving-options button:hover {
+  border-color: #111;
+}
+
+/* Список пунктов */
+.checkout-input-group select {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 12px;
+  border: 1px solid #e5e5e5;
+  background: white;
+  color: #222;
+  outline: none;
+  font-size: 14px;
+}
+
+.checkout-input-group select:focus {
+  border-color: #111;
+}
+
+/* Выбранный пункт */
+.checkout-selected-pickup {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 17px;
+  margin: 15px 0;
+  background: #f7f7f7;
+  border: 1px solid #eaeaea;
+}
+
+.checkout-selected-pickup-icon {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  background: #111;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.checkout-selected-pickup > div:last-child {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.checkout-selected-pickup span {
+  font-size: 11px;
+  color: #888;
+}
+
+.checkout-selected-pickup strong {
+  font-size: 15px;
+  color: #111;
+}
+
+.checkout-selected-pickup p {
+  margin: 0;
+  color: #666;
+  font-size: 13px;
+}
+
+.checkout-pickup-empty {
+  color: #c0392b;
+  font-size: 12px;
+  margin-top: 8px;
+}
+
+@media (max-width: 600px) {
+  .checkout-receiving-options {
+    grid-template-columns: 1fr;
+  }
+}
