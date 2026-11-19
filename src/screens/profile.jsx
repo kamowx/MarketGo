@@ -180,6 +180,17 @@ function Profile() {
 
           <div className="stylestore-profile-row">
             <div className="stylestore-profile-icon">
+              <i className="fa-solid fa-envelope"></i>
+            </div>
+
+            <div>
+              <span>Город</span>
+              <strong>{loading ? "Загрузка..." : user?.city || ""}</strong>
+            </div>
+          </div>
+
+          <div className="stylestore-profile-row">
+            <div className="stylestore-profile-icon">
               <i className="fa-solid fa-phone"></i>
             </div>
 

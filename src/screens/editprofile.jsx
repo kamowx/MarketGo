@@ -14,6 +14,7 @@ function Editprofile() {
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [adres, setAdres] = useState("");
+  const [city, setCity] = useState("");
   const [photo, setPhoto] = useState("");
 
   const [showPhotoModal, setShowPhotoModal] = useState(false);
@@ -60,6 +61,7 @@ function Editprofile() {
       setSurname(currentUser.lastname || "");
       setPhone(currentUser.numberphone || "");
       setEmail(currentUser.email || "");
+      setCity(currentUser.city || "");
       setAdres(currentUser.adres || "");
       setPhoto(currentUser.avatar || "");
       setPhotoInput(currentUser.avatar || "");
@@ -77,7 +79,13 @@ function Editprofile() {
 
   // Сохраняем изменения
   const saveProfile = async () => {
-    if (!name.trim() || !surname.trim() || !phone.trim() || !email.trim()) {
+    if (
+      !name.trim() ||
+      !surname.trim() ||
+      !phone.trim() ||
+      !email.trim() ||
+      !city.trim()
+    ) {
       alert("Заполните все обязательные поля");
       return;
     }
@@ -119,6 +127,7 @@ function Editprofile() {
         numberphone: phone.trim(),
         email: email.trim(),
         adres: adres.trim(),
+        city: city.trim(),
         avatar: photo,
       });
 
@@ -228,6 +237,20 @@ function Editprofile() {
                 value={adres}
                 onChange={(e) => setAdres(e.target.value)}
               />
+            </div>
+
+            <div className="edit-profile-field">
+              <label>Город</label>
+              <select
+                name="text"
+                value={city}
+                onChange={(e) => setCity(e.target.value)}
+                id=""
+                placeholder="Введите адрес"
+              >
+                <option value="Ош">Ош</option>
+                <option value="Бишкек">Бишкек</option>
+              </select>
             </div>
             <br />
             <br />

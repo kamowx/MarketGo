@@ -52,7 +52,9 @@ function Myorders() {
         const ordersResponse = await axios.get(ORDERS_URL);
 
         const userOrders = ordersResponse.data.filter(
-          (item) => String(item.buyerId) === String(currentUser.id),
+          (item) =>
+            String(item.buyerid || item.buyerId || item.userId) ===
+            String(currentUser.id),
         );
 
         userOrders.sort(
@@ -81,6 +83,18 @@ function Myorders() {
 
   const getStatusName = (orderStatus) => {
     if (
+      [
+        "Ожидание возврата",
+        "Возврат оформлен",
+        "Возврат завершён",
+        "Возврат завершен",
+        "Возвращено",
+      ].includes(orderStatus)
+    ) {
+      return "Возврат";
+    }
+
+    if (
       orderStatus === "Ожидание" ||
       orderStatus === "Новый" ||
       orderStatus === "Ожидание курьера"
@@ -103,7 +117,11 @@ function Myorders() {
       return "Едет";
     }
 
-    if (orderStatus === "Получено" || orderStatus === "Завершен") {
+    if (
+      orderStatus === "Получено" ||
+      orderStatus === "Завершен" ||
+      orderStatus === "Завершено"
+    ) {
       return "Получено";
     }
 
@@ -113,6 +131,10 @@ function Myorders() {
   const getProducts = (order) => {
     if (Array.isArray(order.products)) {
       return order.products;
+    }
+
+    if (Array.isArray(order.storeOrders)) {
+      return order.storeOrders.flatMap((store) => store.products || []);
     }
 
     if (order.name) {
@@ -130,18 +152,20 @@ function Myorders() {
     return [];
   };
 
-  // Поиск по всем товарам внутри заказа
   const filteredOrders = orders.filter((item) => {
     const products = getProducts(item);
 
     const matchesSearch =
       (item.namecompany || "").toLowerCase().includes(search.toLowerCase()) ||
       products.some((product) =>
-        (product.name || "").toLowerCase().includes(search.toLowerCase()),
+        (product.name || product.title || "")
+          .toLowerCase()
+          .includes(search.toLowerCase()),
       );
 
-    const matchesStatus =
-      status === "Все" || getStatusName(item.orderstatus) === status;
+    const orderStatus = getStatusName(item.orderstatus);
+
+    const matchesStatus = status === "Все" || orderStatus === status;
 
     return matchesSearch && matchesStatus;
   });
@@ -165,7 +189,7 @@ function Myorders() {
         </div>
 
         <div className="market-categories order-categories">
-          {["Все", "Заказан", "Едет", "Получено"].map((item) => (
+          {["Все", "Заказан", "Едет", "Получено", "Возврат"].map((item) => (
             <button
               key={item}
               className={status === item ? "active" : ""}
@@ -200,6 +224,7 @@ function Myorders() {
           ) : (
             filteredOrders.map((item) => {
               const products = getProducts(item);
+              const currentStatus = getStatusName(item.orderstatus);
 
               return (
                 <div
@@ -212,16 +237,14 @@ function Myorders() {
                       <img
                         key={product.id || index}
                         src={product.avatar}
-                        alt={product.name}
+                        alt={product.name || product.title}
                       />
                     ))}
                   </div>
 
                   <div className="market-order-info">
                     <p>Заказ №{item.id}</p>
-
                     <h3>{item.namecompany || "Магазин"}</h3>
-
                     <span>{products.length} товаров</span>
 
                     <span>
@@ -241,14 +264,14 @@ function Myorders() {
 
                   <div
                     className={`market-order-status status-${
-                      getStatusName(item.orderstatus) === "Едет"
+                      currentStatus === "Едет"
                         ? "moving"
-                        : getStatusName(item.orderstatus) === "Получено"
+                        : currentStatus === "Получено"
                           ? "done"
                           : "new"
                     }`}
                   >
-                    {getStatusName(item.orderstatus)}
+                    {currentStatus}
                   </div>
                 </div>
               );

@@ -228,6 +228,8 @@ function Home() {
                     <p>{item.category}</p>
                     <h3>{item.name}</h3>
 
+                    <h3>{item.namecompany}</h3>
+
                     <h3>{item.weight} кг</h3>
 
                     <strong>
